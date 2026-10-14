@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.Win32;
@@ -202,25 +202,36 @@ namespace PCTurbo
                     R.Del(lm, @"SOFTWARE\Policies\Microsoft\Edge", "BackgroundModeEnabled");
                 }));
 
-            // 5f. Widgets, Copilot, Recall, busca web
-            list.Add(T("Desligar Widgets, Copilot, Recall e busca na web do Iniciar",
+            // 5f. Widgets e busca web
+            list.Add(T("Desligar Widgets e busca na web do Iniciar",
                 "Menos processos de fundo e menos RAM. A pesquisa do Windows continua achando seus arquivos e apps.",
                 true,
                 delegate
                 {
                     Safe("Widgets", delegate { R.SetDword(lm, @"SOFTWARE\Policies\Microsoft\Dsh", "AllowNewsAndInterests", 0); });
-                    Safe("Copilot", delegate { R.SetDword(cu, @"Software\Policies\Microsoft\Windows\WindowsCopilot", "TurnOffWindowsCopilot", 1); });
                     Safe("Busca na web", delegate { R.SetDword(cu, @"Software\Policies\Microsoft\Windows\Explorer", "DisableSearchBoxSuggestions", 1); });
-                    Safe("Recall", delegate { R.SetDword(lm, @"SOFTWARE\Policies\Microsoft\Windows\WindowsAI", "DisableAIDataAnalysis", 1); });
                     Safe("Botao de Widgets", delegate { R.SetDword(cu, @"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", "TaskbarDa", 0); });
                 },
                 delegate
                 {
                     Safe("Widgets", delegate { R.Del(lm, @"SOFTWARE\Policies\Microsoft\Dsh", "AllowNewsAndInterests"); });
-                    Safe("Copilot", delegate { R.Del(cu, @"Software\Policies\Microsoft\Windows\WindowsCopilot", "TurnOffWindowsCopilot"); });
                     Safe("Busca na web", delegate { R.Del(cu, @"Software\Policies\Microsoft\Windows\Explorer", "DisableSearchBoxSuggestions"); });
-                    Safe("Recall", delegate { R.Del(lm, @"SOFTWARE\Policies\Microsoft\Windows\WindowsAI", "DisableAIDataAnalysis"); });
                     Safe("Botao de Widgets", delegate { R.SetDword(cu, @"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", "TaskbarDa", 1); });
+                }));
+
+            // 5f2. Copilot e Recall (desmarcado: voce pode querer usar o Copilot)
+            list.Add(T("Desligar Copilot e Recall",
+                "DESMARCADO por padrão: só marque se você não usa o Copilot do Windows.",
+                false,
+                delegate
+                {
+                    Safe("Copilot", delegate { R.SetDword(cu, @"Software\Policies\Microsoft\Windows\WindowsCopilot", "TurnOffWindowsCopilot", 1); });
+                    Safe("Recall", delegate { R.SetDword(lm, @"SOFTWARE\Policies\Microsoft\Windows\WindowsAI", "DisableAIDataAnalysis", 1); });
+                },
+                delegate
+                {
+                    Safe("Copilot", delegate { R.Del(cu, @"Software\Policies\Microsoft\Windows\WindowsCopilot", "TurnOffWindowsCopilot"); });
+                    Safe("Recall", delegate { R.Del(lm, @"SOFTWARE\Policies\Microsoft\Windows\WindowsAI", "DisableAIDataAnalysis"); });
                 }));
 
             // 5g. Teclas de aderencia
@@ -359,6 +370,26 @@ namespace PCTurbo
                     R.Del(lm, @"SOFTWARE\Policies\Microsoft\Windows\DeliveryOptimization", "DODownloadMode");
                 }));
 
+            // 9b. Timer do Windows (ganho real no Windows 11: precisao dos jogos)
+            list.Add(T("Relógio preciso para jogos (timer)",
+                "No Windows 11 o pedido de relógio rápido de um programa deixou de valer para o sistema todo. Isso devolve o comportamento antigo e deixa o ritmo dos quadros e o mouse mais consistentes. Vale depois de reiniciar.",
+                true,
+                delegate
+                {
+                    R.SetDword(lm, @"SYSTEM\CurrentControlSet\Control\Session Manager\kernel", "GlobalTimerResolutionRequests", 1);
+                },
+                delegate
+                {
+                    R.Del(lm, @"SYSTEM\CurrentControlSet\Control\Session Manager\kernel", "GlobalTimerResolutionRequests");
+                }));
+
+            // 9c. Menos escrita no disco
+            list.Add(T("Disco sem registrar data do último acesso",
+                "O Windows para de gravar um carimbo toda vez que um arquivo é lido. Menos escrita no SSD e carregamento um pouco mais leve. Não perde nenhum arquivo.",
+                true,
+                delegate { Proc.Run("fsutil.exe", "behavior set disablelastaccess 1", null); },
+                delegate { Proc.Run("fsutil.exe", "behavior set disablelastaccess 2", null); }));
+
             // 10. Servicos
             list.Add(T("Desativar serviços inúteis",
                 "Fax, Mapas offline, Registro Remoto, Modo Demo, Telemetria e Windows Media Player em rede.",
@@ -399,8 +430,8 @@ namespace PCTurbo
 
             // 12. Hibernacao
             list.Add(T("Desligar a hibernação",
-                "Libera vários GB no disco (o arquivo de hibernação é grande com 32 GB de RAM) e desliga o Início Rápido.",
-                true,
+                "Libera vários GB no disco (o arquivo de hibernação é grande com 32 GB de RAM) e desliga o Início Rápido. DESMARCADO por padrão: só marque se você não usa hibernar.",
+                false,
                 delegate { Proc.Run("powercfg.exe", "-h off", null); },
                 delegate { Proc.Run("powercfg.exe", "-h on", null); }));
 

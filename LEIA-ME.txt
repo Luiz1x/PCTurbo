@@ -61,3 +61,9 @@ ATUALIZAR DENTRO DO PROGRAMA
 - Clique no botao "Atualizar" no topo. Ele confere se tem versao nova no GitHub,
   baixa, recompila sozinho e abre de novo. Se der erro, o PC Turbo antigo continua.
 - Quando tem versao nova, o botao mostra "Atualizar (vX.Y.Z)".
+
+NOVIDADES DA 1.1.0
+- Ao abrir, o programa avisa se tem versao nova e pergunta se quer atualizar.
+- OTIMIZAR TUDO ganhou: relogio preciso para jogos (timer) e disco sem registrar ultimo acesso.
+- Copilot/Recall e hibernacao agora vem DESMARCADOS (so desligue se nao usa).
+- Nada e desinstalado pelo OTIMIZAR TUDO.

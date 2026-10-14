@@ -26,12 +26,12 @@ namespace PCTurbo
             root.RowCount = 3;
             root.RowStyles.Add(new RowStyle(SizeType.Absolute, 74));
             root.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-            root.RowStyles.Add(new RowStyle(SizeType.Absolute, 170));
+            root.RowStyles.Add(new RowStyle(SizeType.Absolute, 140));
 
             // Cabecalho
             Panel header = new Panel();
             header.Dock = DockStyle.Fill;
-            header.BackColor = Color.FromArgb(24, 24, 28);
+            header.BackColor = Color.FromArgb(17, 20, 26);
 
             Label title = new Label();
             title.Text = "PC Turbo";
@@ -41,7 +41,7 @@ namespace PCTurbo
             title.Location = new Point(16, 6);
 
             Label sub = new Label();
-            sub.Text = "Limpeza, otimização e manutenção do Windows 11";
+            sub.Text = "Limpeza, otimização e manutenção do Windows 11  -  versão " + Updater.Current;
             sub.ForeColor = Color.Gainsboro;
             sub.Font = new Font("Segoe UI", 9f);
             sub.AutoSize = true;
@@ -54,6 +54,13 @@ namespace PCTurbo
             btnUpd = Ui.Btn("Atualizar", 120, delegate { DoUpdate(); });
             btnUpd.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             btnUpd.Height = 52;
+            btnUpd.FlatStyle = FlatStyle.Flat;
+            btnUpd.FlatAppearance.BorderSize = 1;
+            btnUpd.FlatAppearance.BorderColor = Color.FromArgb(70, 78, 92);
+            btnUpd.BackColor = Color.FromArgb(34, 40, 52);
+            btnUpd.ForeColor = Color.White;
+            btnUpd.UseVisualStyleBackColor = false;
+            btnUpd.Cursor = Cursors.Hand;
             btnUpd.Location = new Point(1100 - 330 - 16 - 120 - 12, 11);
 
             header.Controls.Add(btnUpd);
@@ -110,22 +117,29 @@ namespace PCTurbo
                 }
             };
 
-            System.Threading.ThreadPool.QueueUserWorkItem(delegate(object o)
+            this.Shown += delegate
             {
-                string latest = Updater.LatestVersion();
-                if (!Updater.IsNewer(latest)) return;
-                try
+                System.Threading.ThreadPool.QueueUserWorkItem(delegate(object o)
                 {
-                    this.BeginInvoke(new Action(delegate
+                    string latest = Updater.LatestVersion();
+                    if (!Updater.IsNewer(latest)) return;
+                    try
                     {
-                        btnUpd.Text = "Atualizar (v" + latest + ")";
-                        btnUpd.Width = 190;
-                        btnUpd.Left = btnUpd.Parent.ClientSize.Width - 330 - 16 - btnUpd.Width - 12;
-                        Log.Write("Tem versão nova do PC Turbo (" + latest + "). Clique em Atualizar.");
-                    }));
-                }
-                catch { }
-            });
+                        this.BeginInvoke(new Action(delegate
+                        {
+                            btnUpd.Text = "Atualizar (v" + latest + ")";
+                            btnUpd.Width = 190;
+                            btnUpd.Left = btnUpd.Parent.ClientSize.Width - 330 - 16 - btnUpd.Width - 12;
+                            Log.Write("Tem versão nova do PC Turbo (" + latest + ").");
+                            DialogResult dr = MessageBox.Show(
+                                "Tem uma versão nova do PC Turbo (" + latest + "). A sua é a " + Updater.Current + ".\n\nQuer atualizar agora? Leva alguns segundos e o programa abre sozinho de novo.",
+                                "PC Turbo - atualização", MessageBoxButtons.YesNo, MessageBoxIcon.Information);
+                            if (dr == DialogResult.Yes) DoUpdate();
+                        }));
+                    }
+                    catch { }
+                });
+            };
 
             Log.Write("PC Turbo iniciado. Tudo o que o programa faz aparece aqui e também no arquivo PCTurbo_log.txt na Área de Trabalho.");
         }

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Drawing;
 using System.Threading;
 using System.Windows.Forms;
@@ -48,7 +48,7 @@ namespace PCTurbo
             lv.View = View.Details;
             lv.CheckBoxes = true;
             lv.FullRowSelect = true;
-            lv.GridLines = true;
+            lv.GridLines = false;
             lv.HideSelection = false;
             lv.MultiSelect = false;
             lv.Dock = DockStyle.Fill;

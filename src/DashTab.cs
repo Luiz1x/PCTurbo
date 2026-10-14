@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
@@ -43,7 +43,7 @@ namespace PCTurbo
             Label note = new Label();
             note.Width = 900;
             note.Height = 44;
-            note.Text = "Cria um ponto de restauração, limpa os arquivos inúteis e aplica os ajustes recomendados (os mesmos que já vêm marcados nas abas Limpeza e Otimização). Depois é só reiniciar.";
+            note.Text = "Cria um ponto de restauração, limpa os arquivos inúteis e aplica os ajustes recomendados (os mesmos que já vêm marcados nas abas Limpeza e Otimização), as configs de FPS da NVIDIA e o relógio preciso para jogos. Depois é só reiniciar.";
             flow.Controls.Add(note);
 
             Button big = Ui.BigButton("OTIMIZAR TUDO (1 clique)", 420, 64, delegate
@@ -52,6 +52,17 @@ namespace PCTurbo
             });
             big.Margin = new Padding(6);
             flow.Controls.Add(big);
+
+            Label safe = new Label();
+            safe.Width = 900;
+            safe.Height = 70;
+            safe.Margin = new Padding(6, 4, 0, 0);
+            safe.Padding = new Padding(10, 6, 10, 6);
+            safe.BackColor = Color.FromArgb(232, 246, 237);
+            safe.ForeColor = Color.FromArgb(20, 90, 50);
+            safe.Text = "Pode confiar: o OTIMIZAR TUDO não desinstala nenhum programa, não apaga jogos, fotos, downloads nem documentos, e não mexe em Xbox, Game Pass, Riot/Vanguard, Epic, Steam, Discord nem nos drivers. " +
+                "Ele só limpa lixo temporário e muda ajustes do Windows que podem ser desfeitos na aba Otimização.";
+            flow.Controls.Add(safe);
 
             flow.Controls.Add(Section("Seu computador"));
             lblOs = Info(flow, "Sistema");
@@ -130,6 +141,7 @@ namespace PCTurbo
             l.Height = 32;
             l.Margin = new Padding(0, 14, 0, 2);
             l.Font = new Font("Segoe UI", 11.5f, FontStyle.Bold);
+            l.ForeColor = Color.FromArgb(24, 130, 70);
             l.TextAlign = ContentAlignment.BottomLeft;
             return l;
         }
