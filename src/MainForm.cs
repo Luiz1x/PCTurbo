@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Drawing;
 using System.Windows.Forms;
 
@@ -9,10 +9,11 @@ namespace PCTurbo
         private TabControl tabs;
         private TextBox txtLog;
         private DashTab dash;
+        private Button btnUpd;
 
         public MainForm()
         {
-            this.Text = "PC Turbo 1.0";
+            this.Text = "PC Turbo " + Updater.Current;
             this.ClientSize = new Size(1100, 780);
             this.MinimumSize = new Size(960, 620);
             this.StartPosition = FormStartPosition.CenterScreen;
@@ -50,10 +51,16 @@ namespace PCTurbo
             quick.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             quick.Location = new Point(1100 - 330 - 16, 11);
 
+            btnUpd = Ui.Btn("Atualizar", 120, delegate { DoUpdate(); });
+            btnUpd.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btnUpd.Height = 52;
+            btnUpd.Location = new Point(1100 - 330 - 16 - 120 - 12, 11);
+
+            header.Controls.Add(btnUpd);
             header.Controls.Add(title);
             header.Controls.Add(sub);
             header.Controls.Add(quick);
-            header.Resize += delegate { quick.Left = header.ClientSize.Width - quick.Width - 16; };
+            header.Resize += delegate { quick.Left = header.ClientSize.Width - quick.Width - 16; btnUpd.Left = quick.Left - btnUpd.Width - 12; };
 
             // Abas
             tabs = new TabControl();
@@ -103,6 +110,23 @@ namespace PCTurbo
                 }
             };
 
+            System.Threading.ThreadPool.QueueUserWorkItem(delegate(object o)
+            {
+                string latest = Updater.LatestVersion();
+                if (!Updater.IsNewer(latest)) return;
+                try
+                {
+                    this.BeginInvoke(new Action(delegate
+                    {
+                        btnUpd.Text = "Atualizar (v" + latest + ")";
+                        btnUpd.Width = 190;
+                        btnUpd.Left = btnUpd.Parent.ClientSize.Width - 330 - 16 - btnUpd.Width - 12;
+                        Log.Write("Tem versão nova do PC Turbo (" + latest + "). Clique em Atualizar.");
+                    }));
+                }
+                catch { }
+            });
+
             Log.Write("PC Turbo iniciado. Tudo o que o programa faz aparece aqui e também no arquivo PCTurbo_log.txt na Área de Trabalho.");
         }
 
@@ -113,6 +137,46 @@ namespace PCTurbo
             content.Dock = DockStyle.Fill;
             page.Controls.Add(content);
             tabs.TabPages.Add(page);
+        }
+
+        private void DoUpdate()
+        {
+            if (Ui.Busy)
+            {
+                MessageBox.Show("Já tem uma tarefa rodando. Espere terminar.", "PC Turbo");
+                return;
+            }
+            Ui.Background("Verificando atualização", delegate
+            {
+                string latest = Updater.LatestVersion();
+                if (latest == null)
+                {
+                    Log.Write("Não consegui checar a versão (sem internet?).");
+                    this.BeginInvoke(new Action(delegate { MessageBox.Show("Não consegui checar se há versão nova. Veja a internet e tente de novo.", "PC Turbo"); }));
+                    return;
+                }
+                if (!Updater.IsNewer(latest))
+                {
+                    Log.Write("Você já está na versão mais nova (" + Updater.Current + ").");
+                    this.BeginInvoke(new Action(delegate { MessageBox.Show("Você já está na versão mais nova (" + Updater.Current + ").", "PC Turbo"); }));
+                    return;
+                }
+                Log.Write("Versão nova: " + latest + " (a sua é " + Updater.Current + ")");
+                string err = Updater.DownloadAndReplace();
+                if (err != null)
+                {
+                    Log.Write("Falhou a atualização: " + err);
+                    this.BeginInvoke(new Action(delegate { MessageBox.Show("Não consegui atualizar:\n" + err + "\n\nSeu PC Turbo continua como estava.", "PC Turbo"); }));
+                    return;
+                }
+                Log.Write("Arquivos novos baixados. Recompilando e reabrindo...");
+                this.BeginInvoke(new Action(delegate
+                {
+                    MessageBox.Show("Atualizado para a versão " + latest + ".\nO PC Turbo vai fechar, recompilar e abrir sozinho (leva alguns segundos).", "PC Turbo");
+                    try { Updater.RestartAndRecompile(); }
+                    catch (Exception ex) { MessageBox.Show("Atualizei os arquivos, mas não consegui reabrir: " + ex.Message + "\nAbra pelo INICIAR.bat.", "PC Turbo"); }
+                }));
+            });
         }
 
         private void QuickOptimize()

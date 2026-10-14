@@ -1,4 +1,4 @@
-PC TURBO - limpeza, otimizacao e manutencao do Windows 11
+﻿PC TURBO - limpeza, otimizacao e manutencao do Windows 11
 ==========================================================
 
 JEITO FACIL (recomendado): de dois cliques em INICIAR.bat. Ele compila sozinho na
@@ -56,3 +56,8 @@ DUVIDAS COMUNS
 
 Os arquivos .bat e .ps1 antigos (OTIMIZAR_PC, LISTAR_APPS_PARADOS, DESINSTALAR_APPS)
 nao sao mais necessarios: o PC Turbo faz tudo isso.
+
+ATUALIZAR DENTRO DO PROGRAMA
+- Clique no botao "Atualizar" no topo. Ele confere se tem versao nova no GitHub,
+  baixa, recompila sozinho e abre de novo. Se der erro, o PC Turbo antigo continua.
+- Quando tem versao nova, o botao mostra "Atualizar (vX.Y.Z)".
