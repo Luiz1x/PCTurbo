@@ -1,0 +1,58 @@
+PC TURBO - limpeza, otimizacao e manutencao do Windows 11
+==========================================================
+
+JEITO FACIL (recomendado): de dois cliques em INICIAR.bat. Ele compila sozinho na
+primeira vez e toda vez que a pasta for atualizada. Use sempre esse atalho.
+
+COMO GERAR O PROGRAMA (so na primeira vez, leva uns 10 segundos)
+1. Clique com o botao direito no zip e escolha "Extrair tudo".
+   IMPORTANTE: extraia a pasta inteira. Nao rode de dentro do zip.
+2. Abra a pasta extraida e de dois cliques em COMPILAR.bat
+   (usa o compilador que ja vem no Windows, nao instala nada).
+3. Quando aparecer "PRONTO", o arquivo PCTurbo.exe foi criado na mesma pasta.
+
+COMO USAR
+- De dois cliques em PCTurbo.exe e aceite a caixinha de administrador.
+- BOTAO VERDE "OTIMIZAR TUDO (1 clique)" (no topo, sempre visivel, e no Painel):
+  cria ponto de restauracao, limpa, aplica os ajustes recomendados e as configs de FPS
+  da NVIDIA, mostra um diagnostico e oferece reiniciar o PC.
+- Aba Painel: informacoes do PC e uso em tempo real.
+  Tambem tem o Diagnostico para jogos (taxa da tela, RAM, Resizable BAR) e o
+  Modo Jogo: lista os programas abertos e VOCE marca o que fechar antes de jogar.
+- Aba Limpeza: escolha o que limpar e veja quanto espaco libera.
+- Aba Otimizacao: ajustes do Windows. Todos podem ser revertidos.
+- Aba NVIDIA 3D: botao "Aplicar melhores configs de FPS" muda o perfil global do
+  driver (Gerenciar configuracoes 3D), mostra o valor atual e tem "Restaurar padrao".
+  Feche e reabra o Painel de Controle NVIDIA para ver os valores novos.
+- Aba Programas: lista o que parece parado e desinstala em lote (voce marca).
+- Aba Inicializacao: liga e desliga o que abre junto com o Windows.
+- Aba Manutencao: atualizar programas, DISM, SFC, ponto de restauracao.
+
+SEGURANCA
+- Antes de mudar algo importante, o programa cria um ponto de restauracao.
+- Nada vem marcado para desinstalar: quem decide e voce.
+- Drivers, anti-cheat, Riot/Vanguard e Xbox/Game Pass ficam fora da lista de programas.
+- Tudo o que o programa faz aparece no quadro de baixo e no arquivo
+  PCTurbo_log.txt na Area de Trabalho.
+
+SE DER ERRO AO COMPILAR
+O COMPILAR.bat tenta primeiro com o modulo NVIDIA e, se der erro, compila sem ele
+(o resto do programa funciona igual; ai use o Painel NVIDIA manualmente).
+Tire um print da janela preta e mande para o Claude.
+
+DUVIDAS COMUNS
+- AVISO "procurar app na Microsoft Store" ao usar o controle (GTA, Rocket League...):
+  vinha de o Game Bar ter sido removido. Agora ele nao e mais removido e existe o
+  ajuste "Evitar o aviso..." na aba Otimizacao (ou rode CORRIGIR_AVISO_CONTROLE.bat).
+- A remocao de apps da Microsoft agora vem DESMARCADA.
+- O Media Player e o Filmes e TV da Microsoft NAO sao mais removidos (foi corrigido).
+  Se o seu ja foi removido, instale "Media Player" na Microsoft Store (gratis).
+- O botao verde nao aparece? Voce abriu um PCTurbo.exe antigo. Feche o programa,
+  extraia o zip novo por cima e rode COMPILAR.bat de novo.
+- Itens que vem DESMARCADOS de proposito (voce decide): Integridade de memoria (VBS),
+  menos transparencia, apps da Store em segundo plano, cache de navegador/Discord/Steam,
+  cache de shaders e Lixeira.
+- Reiniciar o PC depois do botao verde faz tudo valer.
+
+Os arquivos .bat e .ps1 antigos (OTIMIZAR_PC, LISTAR_APPS_PARADOS, DESINSTALAR_APPS)
+nao sao mais necessarios: o PC Turbo faz tudo isso.
