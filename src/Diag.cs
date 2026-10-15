@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Text;
 
 namespace PCTurbo
@@ -13,6 +13,8 @@ namespace PCTurbo
         public bool PlanKnown, PlanOk;
         public bool RefreshOk, RamOk, BarOk;
         public bool RefreshKnown, RamKnown, BarKnown;
+        public string Disk = "não consegui ler";
+        public bool DiskKnown, DiskOk;
     }
 
     // Verificacoes que nao se resolvem por software: so avisa o que esta fora do ideal
@@ -28,7 +30,8 @@ namespace PCTurbo
                     "$r=(Get-CimInstance Win32_VideoController | Where-Object {$_.CurrentRefreshRate} | Select-Object -First 1).CurrentRefreshRate;" +
                     "\"REF|$r\";" +
                     "$m=@(Get-CimInstance Win32_PhysicalMemory);" +
-                    "\"RAM|$($m.Count)|$(($m | Select-Object -First 1).ConfiguredClockSpeed)|$(($m | Select-Object -First 1).Speed)\"";
+                    "\"RAM|$($m.Count)|$(($m | Select-Object -First 1).ConfiguredClockSpeed)|$(($m | Select-Object -First 1).Speed)\";" +
+                    "Get-PhysicalDisk -ErrorAction SilentlyContinue | ForEach-Object { \"DSK|$($_.FriendlyName)|$($_.MediaType)|$($_.HealthStatus)\" }";
                 Proc.PowerShell(script, delegate(string line)
                 {
                     string[] p = line.Split('|');
@@ -41,6 +44,14 @@ namespace PCTurbo
                             d.RefreshOk = hz >= 200;
                             d.Refresh = hz + " Hz" + (d.RefreshOk ? "" : " - seu monitor faz 240 Hz: ajuste em Configurações > Tela > Tela avançada");
                         }
+                    }
+                    else if (p.Length >= 4 && p[0] == "DSK")
+                    {
+                        string health = p[3].Trim();
+                        bool good = health.Equals("Healthy", StringComparison.OrdinalIgnoreCase);
+                        string one = p[1].Trim() + " (" + p[2].Trim() + ") - " + (good ? "saudável" : health + ": faça backup e confira o disco");
+                        if (!d.DiskKnown) { d.DiskKnown = true; d.DiskOk = good; d.Disk = one; }
+                        else { d.DiskOk = d.DiskOk && good; d.Disk += "; " + one; }
                     }
                     else if (p.Length >= 4 && p[0] == "RAM")
                     {

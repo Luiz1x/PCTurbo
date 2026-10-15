@@ -26,6 +26,7 @@ if not exist "src\Util.cs" (
 )
 
 taskkill /f /im PCTurbo.exe >nul 2>&1
+if exist "PCTurbo.exe" copy /y "PCTurbo.exe" "PCTurbo.exe.bak" >nul 2>&1
 if exist "PCTurbo.exe" del /f /q "PCTurbo.exe" >nul 2>&1
 if exist "PCTurbo.exe" (
     echo Nao consegui apagar o PCTurbo.exe antigo. Feche o PC Turbo e tente de novo.
@@ -47,9 +48,11 @@ echo O modulo NVIDIA deu erro. Tentando compilar sem ele...
 :compilou
 
 if not exist "PCTurbo.exe" (
+    if exist "PCTurbo.exe.bak" copy /y "PCTurbo.exe.bak" "PCTurbo.exe" >nul 2>&1
     echo.
     echo ==========================================
     echo   DEU ERRO AO COMPILAR
+    if exist "PCTurbo.exe" echo   A versao anterior do PC Turbo foi mantida e continua funcionando.
     echo   Tire um print desta janela e mande para o Claude.
     echo ==========================================
     echo.

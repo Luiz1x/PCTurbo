@@ -67,3 +67,9 @@ NOVIDADES DA 1.1.0
 - OTIMIZAR TUDO ganhou: relogio preciso para jogos (timer) e disco sem registrar ultimo acesso.
 - Copilot/Recall e hibernacao agora vem DESMARCADOS (so desligue se nao usa).
 - Nada e desinstalado pelo OTIMIZAR TUDO.
+
+NOVIDADES DA 1.2.0
+- Saude do disco no Diagnostico (Painel).
+- Botao "Desfazer ajustes do Otimizar" no Painel.
+- Limpeza automatica semanal (aba Manutencao): so lixo temporario, todo domingo 12h.
+- Se uma atualizacao falhar ao compilar, a versao anterior continua funcionando.

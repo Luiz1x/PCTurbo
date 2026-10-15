@@ -75,6 +75,7 @@ namespace PCTurbo
 
             dash = new DashTab();
             dash.QuickAction = QuickOptimize;
+            dash.UndoAction = UndoAll;
 
             AddTab("Painel", dash);
             AddTab("Limpeza", new CleanTab());
@@ -151,6 +152,40 @@ namespace PCTurbo
             content.Dock = DockStyle.Fill;
             page.Controls.Add(content);
             tabs.TabPages.Add(page);
+        }
+
+        private void UndoAll()
+        {
+            if (Ui.Busy)
+            {
+                MessageBox.Show("Já tem uma tarefa rodando. Espere terminar.", "PC Turbo");
+                return;
+            }
+            DialogResult r = MessageBox.Show(
+                "Isso desfaz os ajustes de Windows que o OTIMIZAR TUDO aplica (plano de energia, Game Bar, timer, serviços e os outros que vêm marcados na aba Otimização). Arquivos já limpos não voltam.\n\nDesfazer agora?",
+                "Desfazer ajustes", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            if (r != DialogResult.Yes) return;
+
+            Ui.Background("Desfazer ajustes", delegate
+            {
+                int ok = 0, fail = 0;
+                foreach (Tweak tw in Tweaks.All())
+                {
+                    if (!tw.Default || tw.Revert == null) continue;
+                    try
+                    {
+                        tw.Revert();
+                        ok++;
+                        Log.Write("Desfeito: " + tw.Name);
+                    }
+                    catch (Exception ex)
+                    {
+                        fail++;
+                        Log.Write("Falhou ao desfazer: " + tw.Name + " - " + ex.Message);
+                    }
+                }
+                Log.Write("Ajustes desfeitos: " + ok + (fail > 0 ? " (" + fail + " falharam)" : "") + ". Reinicie o PC para valer tudo.");
+            });
         }
 
         private void DoUpdate()
@@ -294,9 +329,29 @@ namespace PCTurbo
 
     static class Program
     {
-        [STAThread]
-        static void Main()
+        // Usado pela limpeza automatica semanal: so os itens que vem marcados, sem janela
+        private static void SilentClean()
         {
+            long total = 0;
+            Log.Write("Limpeza automática semanal iniciada.");
+            foreach (CleanTarget t in Cleaner.Targets())
+            {
+                if (!t.Default) continue;
+                try { total += t.Clean(); }
+                catch (Exception ex) { Log.Write("Falhou: " + t.Name + " - " + ex.Message); }
+            }
+            Log.Write("Limpeza automática concluída. Espaço liberado: " + Fmt.Bytes(total));
+        }
+
+        [STAThread]
+        static void Main(string[] args)
+        {
+            if (args != null && args.Length > 0 && args[0].ToLowerInvariant() == "/limpar")
+            {
+                SilentClean();
+                return;
+            }
+
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 

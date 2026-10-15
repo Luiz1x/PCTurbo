@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Drawing;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -8,6 +8,27 @@ namespace PCTurbo
 {
     public static class Maint
     {
+        private const string CleanTaskName = "PC Turbo Limpeza";
+
+        public static void ScheduleClean(bool on)
+        {
+            if (on)
+            {
+                string exe = System.Reflection.Assembly.GetExecutingAssembly().Location;
+                int rc = Proc.Run("schtasks.exe",
+                    "/Create /TN \"" + CleanTaskName + "\" /SC WEEKLY /D SUN /ST 12:00 /RL HIGHEST /F /TR \"\\\"" + exe + "\\\" /limpar\"",
+                    Log.Write);
+                if (rc == 0) Log.Write("Limpeza automática ligada: todo domingo às 12h, se o PC estiver ligado. Só limpa lixo temporário.");
+                else Log.Write("Não consegui ligar a limpeza automática (código " + rc + ").");
+            }
+            else
+            {
+                int rc = Proc.Run("schtasks.exe", "/Delete /TN \"" + CleanTaskName + "\" /F", Log.Write);
+                if (rc == 0) Log.Write("Limpeza automática desligada.");
+                else Log.Write("A limpeza automática não estava ligada.");
+            }
+        }
+
         private static void LogFiltered(string t)
         {
             // Ignora barras de progresso (so simbolos) e contadores "1 MB / 5 MB"
@@ -138,6 +159,14 @@ namespace PCTurbo
             AddAction(flow, "Criar ponto de restauração",
                 "Cria um \"salvamento\" do Windows para você voltar atrás se algo der errado.",
                 delegate { Ui.Background("Ponto de restauração", delegate { Maint.RestorePoint("PC Turbo - manual"); }); });
+
+            AddAction(flow, "Ligar limpeza automática semanal",
+                "Todo domingo às 12h (se o PC estiver ligado) limpa só o lixo temporário, sem abrir janela. Não apaga programas nem seus arquivos.",
+                delegate { Ui.Background("Ligar limpeza automática", delegate { Maint.ScheduleClean(true); }); });
+
+            AddAction(flow, "Desligar limpeza automática",
+                "Remove a tarefa agendada de limpeza semanal.",
+                delegate { Ui.Background("Desligar limpeza automática", delegate { Maint.ScheduleClean(false); }); });
 
             AddAction(flow, "Abrir Windows Update",
                 "Abre a tela de atualizações do Windows nas Configurações.",

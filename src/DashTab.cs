@@ -16,7 +16,7 @@ namespace PCTurbo
         private Label lblGpu;
         private Label lblBoard;
         private Label lblUp;
-        private Label lblHz, lblRamInfo, lblBar, lblDriver, lblPlan;
+        private Label lblHz, lblRamInfo, lblBar, lblDriver, lblPlan, lblDisk;
         private ProgressBar barCpu, barRam, barDisk, barGpuTemp, barGpuUse, barVram;
         private Label valCpu, valRam, valDisk, valGpuTemp, valGpuUse, valVram;
         private System.Windows.Forms.Timer timer;
@@ -27,6 +27,7 @@ namespace PCTurbo
         private bool gpuBusy;
 
         public Action QuickAction;
+        public Action UndoAction;
 
         public DashTab()
         {
@@ -84,13 +85,21 @@ namespace PCTurbo
             lblRamInfo = Info(flow, "Memória RAM");
             lblBar = Info(flow, "Resizable BAR");
             lblPlan = Info(flow, "Plano de energia");
+            lblDisk = Info(flow, "Saúde do disco");
             lblDriver = Info(flow, "Driver NVIDIA");
             Button bDiag = Ui.Btn("Atualizar diagnóstico", 190, delegate { RunDiag(); });
             Button bGame = Ui.Btn("Modo Jogo (fechar apps)", 210, delegate
             {
                 using (GameModeForm f = new GameModeForm()) { f.ShowDialog(this); }
             });
-            flow.Controls.Add(Ui.Buttons(bDiag, bGame));
+            Button bUndo = Ui.Btn("Desfazer ajustes do Otimizar", 230, delegate
+            {
+                if (UndoAction != null) UndoAction();
+            });
+            FlowLayoutPanel diagButtons = Ui.Buttons(bDiag, bGame, bUndo);
+            diagButtons.WrapContents = false;
+            diagButtons.AutoSize = true;
+            flow.Controls.Add(diagButtons);
 
 
             this.Controls.Add(flow);
@@ -108,7 +117,7 @@ namespace PCTurbo
 
         private void RunDiag()
         {
-            lblHz.Text = lblRamInfo.Text = lblBar.Text = lblPlan.Text = lblDriver.Text = "verificando...";
+            lblHz.Text = lblRamInfo.Text = lblBar.Text = lblPlan.Text = lblDriver.Text = lblDisk.Text = "verificando...";
             ThreadPool.QueueUserWorkItem(delegate(object state)
             {
                 DiagResult d = Diag.Run();
@@ -120,6 +129,7 @@ namespace PCTurbo
                         ShowDiag(lblRamInfo, d.Ram, d.RamKnown, d.RamOk);
                         ShowDiag(lblBar, d.Bar, d.BarKnown, d.BarOk);
                         ShowDiag(lblPlan, d.Plan, d.PlanKnown, d.PlanOk);
+                        ShowDiag(lblDisk, d.Disk, d.DiskKnown, d.DiskOk);
                         lblDriver.Text = d.Driver;
                     }));
                 }
