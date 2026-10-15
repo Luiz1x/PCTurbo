@@ -132,3 +132,6 @@ NOVIDADES DA 1.8.2
 
 NOVIDADES DA 1.8.3
 - O OTIMIZAR TUDO nao atualiza mais NENHUM programa (nem na manutencao completa). Atualizar programas so pelo botao manual da aba Manutencao.
+
+NOVIDADES DA 1.9.0
+- Relatorio de ganho: no primeiro OTIMIZAR TUDO o app guarda uma foto do PC (programas rodando, RAM, CPU parada, espaco livre). Depois de reiniciar, o botao "Gerar relatorio de ganho" no Painel compara antes e depois e salva PCTurbo_relatorio.txt na Area de Trabalho, pronto para enviar. Soma tambem o lixo removido (manual, semanal e em segundo plano). Nao mede FPS e nao envia nada para a internet. Nao leva nome de usuario.

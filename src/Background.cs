@@ -150,6 +150,7 @@ namespace PCTurbo
                     }
                     lastClean = DateTime.Now;
                     Log.Write("Limpeza automática concluída. Espaço liberado: " + Fmt.Bytes(freed));
+                    Report.AddCleaned(freed, false, 0);
                     string msg = "Limpei " + Fmt.Bytes(freed) + " de lixo (temporários e Lixeira).";
                     try
                     {

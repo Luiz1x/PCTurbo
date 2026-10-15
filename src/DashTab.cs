@@ -28,6 +28,7 @@ namespace PCTurbo
 
         public Action QuickAction;
         public Action UndoAction;
+        public Action ReportAction;
         public CheckBox ChkFull;
 
         public DashTab()
@@ -108,6 +109,15 @@ namespace PCTurbo
             diagButtons.WrapContents = false;
             diagButtons.AutoSize = true;
             flow.Controls.Add(diagButtons);
+
+            Button bRep = Ui.Btn("Gerar relatório de ganho (antes e depois)", 320, delegate
+            {
+                if (ReportAction != null) ReportAction();
+            });
+            FlowLayoutPanel repButtons = Ui.Buttons(bRep);
+            repButtons.WrapContents = false;
+            repButtons.AutoSize = true;
+            flow.Controls.Add(repButtons);
 
 
             this.Controls.Add(flow);

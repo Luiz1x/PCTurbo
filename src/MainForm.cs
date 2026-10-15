@@ -97,6 +97,7 @@ namespace PCTurbo
             dash = new DashTab();
             dash.QuickAction = QuickOptimize;
             dash.UndoAction = UndoAll;
+            dash.ReportAction = MakeReport;
 
             AddTab("Painel", dash);
             AddTab("Limpeza", new CleanTab());
@@ -224,6 +225,24 @@ namespace PCTurbo
             tabs.TabPages.Add(page);
         }
 
+        private void MakeReport()
+        {
+            Ui.Background("Gerando relatório de ganho", delegate
+            {
+                string text = Report.Generate();
+                try
+                {
+                    BeginInvoke(new Action(delegate
+                    {
+                        MessageBox.Show(text + "\r\nSalvei também o arquivo PCTurbo_relatorio.txt na Área de Trabalho.", "PC Turbo - relatório de ganho");
+                        try { System.Diagnostics.Process.Start("explorer.exe", "/select,\"" + Report.ReportFile() + "\""); }
+                        catch { }
+                    }));
+                }
+                catch { }
+            });
+        }
+
         private void UndoAll()
         {
             if (Ui.Busy)
@@ -310,6 +329,7 @@ namespace PCTurbo
 
             Ui.Background("Limpeza e otimização completas", delegate
             {
+                Report.StartBaseline();
                 Maint.RestorePoint("PC Turbo - antes da otimizacao");
 
                 long total = 0;
@@ -325,6 +345,7 @@ namespace PCTurbo
                 Log.Write("Espaço liberado: " + Fmt.Bytes(total));
 
                 int okCount = 0, failCount = 0;
+                int tweaksDone = 0;
                 foreach (Tweak tw in Tweaks.All())
                 {
                     if (!tw.Default) continue;
@@ -340,6 +361,9 @@ namespace PCTurbo
                         Log.Write("Falhou: " + tw.Name + " - " + ex.Message);
                     }
                 }
+
+                tweaksDone = okCount;
+                Report.AddCleaned(total, true, tweaksDone);
 
                 try { Maint.Trim(); } catch (Exception ex) { Log.Write("TRIM falhou: " + ex.Message); }
                 try { Maint.FlushDns(); } catch (Exception ex) { Log.Write("DNS falhou: " + ex.Message); }
@@ -371,7 +395,8 @@ namespace PCTurbo
                     (full ? "\nManutenção completa (SFC e DISM): feita" : "") +
                     "\nNVIDIA: " + (nv == null ? "configs de FPS aplicadas" : "não aplicado") +
                     "\n\nTela: " + dg.Refresh + "\nRAM: " + dg.Ram + "\nResizable BAR: " + dg.Bar + "\nSecure Boot / TPM: " + dg.Boot +
-                    "\n\nPara tudo valer, o PC precisa reiniciar. Reiniciar agora?";
+                    "\n\nPara tudo valer, o PC precisa reiniciar. Depois de reiniciar, clique em \"Gerar relatório de ganho\" no Painel para ver o antes e depois." +
+                    "\n\nReiniciar agora?";
                 try
                 {
                     BeginInvoke(new Action(delegate
@@ -426,6 +451,7 @@ namespace PCTurbo
                 catch (Exception ex) { Log.Write("Falhou: " + t.Name + " - " + ex.Message); }
             }
             Log.Write("Limpeza automática concluída. Espaço liberado: " + Fmt.Bytes(total));
+            Report.AddCleaned(total, false, 0);
         }
 
         [STAThread]
