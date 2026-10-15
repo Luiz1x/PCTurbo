@@ -81,3 +81,7 @@ NOVIDADES DA 1.3.0
 NOVIDADES DA 1.3.1
 - OTIMIZAR TUDO agora faz tudo de uma vez, inclusive ligar a limpeza semanal.
 - Ele pergunta se voce quer incluir a manutencao completa (SFC, DISM e winget, 20 a 40 min).
+
+NOVIDADES DA 1.3.2
+- A limpeza do OTIMIZAR TUDO agora inclui tambem os caches do Discord, Steam, Chrome e Edge.
+- Continuam DESMARCADOS: Lixeira (nao tem volta) e cache de shaders (causa travadinhas depois).

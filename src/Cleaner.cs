@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -111,27 +111,27 @@ namespace PCTurbo
                 Path.Combine(local, @"Microsoft\Windows\Explorer")));
 
             list.Add(Folders("Cache do Discord",
-                "Feche o Discord antes. Não apaga conversas nem login.",
-                false,
+                "Não apaga conversas nem login. Se estiver aberto, pula o que estiver em uso.",
+                true,
                 Path.Combine(roaming, @"discord\Cache"),
                 Path.Combine(roaming, @"discord\Code Cache"),
                 Path.Combine(roaming, @"discord\GPUCache")));
 
             list.Add(Folders("Cache de páginas da Steam (htmlcache)",
-                "Feche a Steam antes. Não apaga jogos nem login.",
-                false,
+                "Não apaga jogos nem login. Se estiver aberta, pula o que estiver em uso.",
+                true,
                 Path.Combine(local, @"Steam\htmlcache")));
 
             list.Add(Folders("Cache do Google Chrome",
-                "Feche o Chrome antes. Não apaga senhas nem histórico.",
-                false,
+                "Não apaga senhas nem histórico. Se estiver aberto, pula o que estiver em uso.",
+                true,
                 Path.Combine(local, @"Google\Chrome\User Data\Default\Cache"),
                 Path.Combine(local, @"Google\Chrome\User Data\Default\Code Cache"),
                 Path.Combine(local, @"Google\Chrome\User Data\Default\GPUCache")));
 
             list.Add(Folders("Cache do Microsoft Edge",
-                "Feche o Edge antes. Não apaga senhas nem histórico.",
-                false,
+                "Não apaga senhas nem histórico. Se estiver aberto, pula o que estiver em uso.",
+                true,
                 Path.Combine(local, @"Microsoft\Edge\User Data\Default\Cache"),
                 Path.Combine(local, @"Microsoft\Edge\User Data\Default\Code Cache"),
                 Path.Combine(local, @"Microsoft\Edge\User Data\Default\GPUCache")));
