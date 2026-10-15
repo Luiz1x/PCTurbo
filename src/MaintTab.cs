@@ -174,7 +174,7 @@ namespace PCTurbo
                 delegate { Ui.Background("Verificação do sistema (SFC)", delegate { Maint.Sfc(); }); });
 
             AddAction(flow, "Ligar limpeza em segundo plano",
-                "Fica na bandeja (perto do relógio) e limpa o lixo temporário sozinha quando passa de 3 GB, ou quando o disco C: está quase cheio. Nunca roda com jogo ou tela cheia aberta. Não apaga programas nem seus arquivos.",
+                "Fica na bandeja (perto do relógio). Esvazia o lixo temporário e a Lixeira sozinha quando passam de um limite (3 GB de temporários, 2 GB na Lixeira) ou quando o disco C: está quase cheio. Também equilibra o processador: se um programa em segundo plano pesar demais, baixa a prioridade dele e devolve depois. Nunca limpa com jogo ou tela cheia aberta. Não apaga programas nem seus arquivos.",
                 delegate { Ui.Background("Ligar limpeza em segundo plano", delegate { Maint.ScheduleBackground(true); }); });
 
             AddAction(flow, "Desligar limpeza em segundo plano",
@@ -182,7 +182,7 @@ namespace PCTurbo
                 delegate { Ui.Background("Desligar limpeza em segundo plano", delegate { Maint.ScheduleBackground(false); }); });
 
             AddAction(flow, "Ligar limpeza automática semanal",
-                "Todo domingo às 12h (se o PC estiver ligado) limpa só o lixo temporário, sem abrir janela. Não apaga programas nem seus arquivos.",
+                "Todo domingo às 12h (se o PC estiver ligado) faz a limpeza e esvazia a Lixeira, sem abrir janela. Não apaga programas nem seus arquivos.",
                 delegate { Ui.Background("Ligar limpeza automática", delegate { Maint.ScheduleClean(true); }); });
 
             AddAction(flow, "Desligar limpeza automática",

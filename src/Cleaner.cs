@@ -139,7 +139,7 @@ namespace PCTurbo
             // Lixeira
             CleanTarget rb = new CleanTarget();
             rb.Name = "Lixeira";
-            rb.Desc = "Esvazia a Lixeira de todos os discos (só o que você já apagou). Não dá para desfazer. Não entra na limpeza automática semanal.";
+            rb.Desc = "Esvazia a Lixeira de todos os discos (só o que você já apagou). Não dá para desfazer. Entra também na limpeza automática.";
             rb.Default = true;
             rb.Size = delegate
             {

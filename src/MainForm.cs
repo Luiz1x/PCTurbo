@@ -405,7 +405,7 @@ namespace PCTurbo
             Log.Write("Limpeza automática semanal iniciada.");
             foreach (CleanTarget t in Cleaner.Targets())
             {
-                if (!t.Default || t.Name == "Lixeira") continue;
+                if (!t.Default) continue;
                 try { total += t.Clean(); }
                 catch (Exception ex) { Log.Write("Falhou: " + t.Name + " - " + ex.Message); }
             }
