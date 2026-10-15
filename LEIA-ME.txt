@@ -91,3 +91,6 @@ NOVIDADES DA 1.4.0
 - Tirei o que era repetido ou inutil: da aba Manutencao saiu TRIM, DNS, ponto de restauracao
   (ja existe na aba Otimizacao), atalhos do Windows Update e Armazenamento; da aba NVIDIA saiu
   o botao de Resizable BAR (ja aparece no Painel).
+
+NOVIDADES DA 1.4.1
+- Corrigi o texto do Painel que aparecia cortado.

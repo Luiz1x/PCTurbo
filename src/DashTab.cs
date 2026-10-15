@@ -43,7 +43,7 @@ namespace PCTurbo
             flow.Controls.Add(Section("Comece por aqui"));
             Label note = new Label();
             note.Width = 900;
-            note.Height = 44;
+            note.Height = 66;
             note.Text = "Cria um ponto de restauração, limpa os arquivos inúteis e aplica os ajustes recomendados (os mesmos que já vêm marcados nas abas Limpeza e Otimização), as configs de FPS da NVIDIA, o relógio preciso para jogos, o TRIM do SSD e a limpeza semanal automática. Se quiser, ele ainda faz a manutenção completa. Depois é só reiniciar.";
             flow.Controls.Add(note);
 
