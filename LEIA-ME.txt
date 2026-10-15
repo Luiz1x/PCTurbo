@@ -105,3 +105,6 @@ NOVIDADES DA 1.5.0
 NOVIDADES DA 1.5.1
 - OTIMIZAR TUDO virou 1 clique de verdade: nao pergunta nada, faz tudo e no fim oferece reiniciar.
 - Caixa "Incluir manutencao completa" no Painel (desmarcada por padrao).
+
+NOVIDADES DA 1.5.2
+- REGRA: o OTIMIZAR TUDO nunca remove nada que voce possa usar. A Lixeira voltou a ficar DESMARCADA (nao e esvaziada sozinha).
