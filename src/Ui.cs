@@ -17,8 +17,16 @@ namespace PCTurbo
             b.Width = width;
             b.Height = 34;
             b.Margin = new Padding(4);
-            b.FlatStyle = FlatStyle.System;
+            b.FlatStyle = FlatStyle.Flat;
+            b.FlatAppearance.BorderSize = 1;
+            b.FlatAppearance.BorderColor = Color.FromArgb(200, 205, 212);
+            b.BackColor = Color.White;
+            b.ForeColor = Color.FromArgb(30, 34, 42);
+            b.UseVisualStyleBackColor = false;
+            b.Cursor = Cursors.Hand;
             b.Click += onClick;
+            b.MouseEnter += delegate { b.BackColor = Color.FromArgb(235, 244, 238); };
+            b.MouseLeave += delegate { b.BackColor = Color.White; };
             return b;
         }
 
@@ -37,6 +45,8 @@ namespace PCTurbo
             b.Cursor = Cursors.Hand;
             b.UseVisualStyleBackColor = false;
             b.Click += onClick;
+            b.MouseEnter += delegate { b.BackColor = Color.FromArgb(28, 150, 76); };
+            b.MouseLeave += delegate { b.BackColor = Color.FromArgb(34, 177, 90); };
             return b;
         }
 
@@ -49,6 +59,8 @@ namespace PCTurbo
             lv.CheckBoxes = true;
             lv.FullRowSelect = true;
             lv.GridLines = false;
+            lv.BorderStyle = BorderStyle.None;
+            lv.BackColor = Color.White;
             lv.HideSelection = false;
             lv.MultiSelect = false;
             lv.Dock = DockStyle.Fill;

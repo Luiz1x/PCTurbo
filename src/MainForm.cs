@@ -17,6 +17,7 @@ namespace PCTurbo
             this.ClientSize = new Size(1100, 780);
             this.MinimumSize = new Size(960, 620);
             this.StartPosition = FormStartPosition.CenterScreen;
+            this.BackColor = Color.FromArgb(244, 246, 249);
             this.Font = new Font("Segoe UI", 9.5f);
             try { this.Icon = MakeIcon(); } catch { }
 
@@ -51,7 +52,12 @@ namespace PCTurbo
             quick.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             quick.Location = new Point(1100 - 330 - 16, 11);
 
-            btnUpd = Ui.Btn("Atualizar", 120, delegate { DoUpdate(); });
+            btnUpd = new Button();
+            btnUpd.Text = "Atualizar";
+            btnUpd.Width = 120;
+            btnUpd.Click += delegate { DoUpdate(); };
+            btnUpd.MouseEnter += delegate { btnUpd.BackColor = Color.FromArgb(48, 56, 72); };
+            btnUpd.MouseLeave += delegate { btnUpd.BackColor = Color.FromArgb(34, 40, 52); };
             btnUpd.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             btnUpd.Height = 52;
             btnUpd.FlatStyle = FlatStyle.Flat;
@@ -72,6 +78,11 @@ namespace PCTurbo
             // Abas
             tabs = new TabControl();
             tabs.Dock = DockStyle.Fill;
+            tabs.DrawMode = TabDrawMode.OwnerDrawFixed;
+            tabs.SizeMode = TabSizeMode.Fixed;
+            tabs.ItemSize = new Size(138, 36);
+            tabs.Padding = new Point(14, 6);
+            tabs.DrawItem += DrawTab;
 
             dash = new DashTab();
             dash.QuickAction = QuickOptimize;
@@ -143,6 +154,30 @@ namespace PCTurbo
             };
 
             Log.Write("PC Turbo iniciado. Tudo o que o programa faz aparece aqui e também no arquivo PCTurbo_log.txt na Área de Trabalho.");
+        }
+
+        private Font tabFont = new Font("Segoe UI", 9.5f, FontStyle.Regular);
+        private Font tabFontBold = new Font("Segoe UI", 9.5f, FontStyle.Bold);
+
+        private void DrawTab(object sender, DrawItemEventArgs e)
+        {
+            bool sel = (e.Index == tabs.SelectedIndex);
+            Rectangle r = tabs.GetTabRect(e.Index);
+            Color back = sel ? Color.White : Color.FromArgb(232, 236, 241);
+            using (SolidBrush bg = new SolidBrush(back))
+            {
+                e.Graphics.FillRectangle(bg, r);
+            }
+            if (sel)
+            {
+                using (SolidBrush acc = new SolidBrush(Color.FromArgb(34, 177, 90)))
+                {
+                    e.Graphics.FillRectangle(acc, r.X, r.Bottom - 3, r.Width, 3);
+                }
+            }
+            Color fore = sel ? Color.FromArgb(17, 20, 26) : Color.FromArgb(90, 98, 110);
+            TextRenderer.DrawText(e.Graphics, tabs.TabPages[e.Index].Text, sel ? tabFontBold : tabFont, r, fore,
+                TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
         }
 
         private void AddTab(string title, Control content)

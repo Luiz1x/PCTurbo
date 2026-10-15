@@ -148,18 +148,6 @@ namespace PCTurbo
                 "Procura e repara arquivos do Windows corrompidos. Pode levar de 10 a 20 minutos.",
                 delegate { Ui.Background("Verificação do sistema (SFC)", delegate { Maint.Sfc(); }); });
 
-            AddAction(flow, "Otimizar SSD (TRIM)",
-                "Avisa o SSD quais blocos estão livres para manter a velocidade de escrita. Rápido e seguro (não é desfragmentação).",
-                delegate { Ui.Background("Otimizar SSD (TRIM)", delegate { Maint.Trim(); }); });
-
-            AddAction(flow, "Limpar cache de DNS",
-                "Ajuda quando alguns sites ou jogos online não conectam direito.",
-                delegate { Ui.Background("Limpar cache de DNS", delegate { Maint.FlushDns(); }); });
-
-            AddAction(flow, "Criar ponto de restauração",
-                "Cria um \"salvamento\" do Windows para você voltar atrás se algo der errado.",
-                delegate { Ui.Background("Ponto de restauração", delegate { Maint.RestorePoint("PC Turbo - manual"); }); });
-
             AddAction(flow, "Ligar limpeza automática semanal",
                 "Todo domingo às 12h (se o PC estiver ligado) limpa só o lixo temporário, sem abrir janela. Não apaga programas nem seus arquivos.",
                 delegate { Ui.Background("Ligar limpeza automática", delegate { Maint.ScheduleClean(true); }); });
@@ -167,14 +155,6 @@ namespace PCTurbo
             AddAction(flow, "Desligar limpeza automática",
                 "Remove a tarefa agendada de limpeza semanal.",
                 delegate { Ui.Background("Desligar limpeza automática", delegate { Maint.ScheduleClean(false); }); });
-
-            AddAction(flow, "Abrir Windows Update",
-                "Abre a tela de atualizações do Windows nas Configurações.",
-                delegate { Open("ms-settings:windowsupdate"); });
-
-            AddAction(flow, "Abrir Armazenamento",
-                "Mostra o que está ocupando espaço no disco, direto nas Configurações.",
-                delegate { Open("ms-settings:storagesense"); });
 
             AddAction(flow, "Reiniciar o PC agora",
                 "Reinicia em 15 segundos. Salve o que estiver aberto antes.",

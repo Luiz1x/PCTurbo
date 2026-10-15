@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Windows.Forms;
@@ -128,10 +128,9 @@ namespace PCTurbo
             Button bBest = Ui.Btn("Aplicar melhores configs de FPS", 240, delegate { ApplyClick(); });
             Button bRestore = Ui.Btn("Restaurar padrão", 140, delegate { RestoreClick(); });
             Button bOpen = Ui.Btn("Abrir Painel NVIDIA", 160, delegate { OpenPanel(); });
-            Button bBar = Ui.Btn("Verificar Resizable BAR", 190, delegate { CheckBar(); });
 
             string desc = "Ajusta o perfil global do driver (Gerenciar configurações 3D > Configurações globais). Tudo reversível pelo botão Restaurar padrão.";
-            this.Controls.Add(Ui.Layout(desc, mid, Ui.Buttons(bBest, bRestore, bOpen, bBar, chkCap, numCap, capHint)));
+            this.Controls.Add(Ui.Layout(desc, mid, Ui.Buttons(bBest, bRestore, bOpen, chkCap, numCap, capHint)));
 
             RefreshValues();
         }
