@@ -13,6 +13,8 @@ if "%NEED%"=="0" (
 if "%NEED%"=="1" (
     echo Atualizando o PC Turbo, so um instante...
     call "%~dp0COMPILAR.bat" auto
+    schtasks /Query /TN "PC Turbo Segundo Plano" >nul 2>&1
+    if not errorlevel 1 if exist "PCTurbo.exe" start "" "%~dp0PCTurbo.exe" /fundo
 )
 if exist "PCTurbo.exe" start "" "%~dp0PCTurbo.exe"
 endlocal

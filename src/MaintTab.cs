@@ -10,6 +10,31 @@ namespace PCTurbo
     {
         private const string CleanTaskName = "PC Turbo Limpeza";
 
+        private const string BgTaskName = "PC Turbo Segundo Plano";
+
+        public static void ScheduleBackground(bool on)
+        {
+            if (on)
+            {
+                string exe = System.Reflection.Assembly.GetExecutingAssembly().Location;
+                int rc = Proc.Run("schtasks.exe",
+                    "/Create /TN \"" + BgTaskName + "\" /SC ONLOGON /RL HIGHEST /F /TR \"\\\"" + exe + "\\\" /fundo\"",
+                    Log.Write);
+                if (rc == 0)
+                {
+                    Log.Write("Limpeza em segundo plano ligada: abre sozinha quando você entra no Windows e fica na bandeja.");
+                    try { System.Diagnostics.Process.Start(exe, "/fundo"); } catch { }
+                }
+                else Log.Write("Não consegui ligar a limpeza em segundo plano (código " + rc + ").");
+            }
+            else
+            {
+                int rc = Proc.Run("schtasks.exe", "/Delete /TN \"" + BgTaskName + "\" /F", Log.Write);
+                if (rc == 0) Log.Write("Limpeza em segundo plano desligada. Se o ícone ainda estiver na bandeja, clique nele com o botão direito e escolha Sair.");
+                else Log.Write("A limpeza em segundo plano não estava ligada.");
+            }
+        }
+
         public static void ScheduleClean(bool on)
         {
             if (on)
@@ -147,6 +172,14 @@ namespace PCTurbo
             AddAction(flow, "Verificar arquivos do sistema (SFC)",
                 "Procura e repara arquivos do Windows corrompidos. Pode levar de 10 a 20 minutos.",
                 delegate { Ui.Background("Verificação do sistema (SFC)", delegate { Maint.Sfc(); }); });
+
+            AddAction(flow, "Ligar limpeza em segundo plano",
+                "Fica na bandeja (perto do relógio) e limpa o lixo temporário sozinha quando passa de 3 GB, ou quando o disco C: está quase cheio. Nunca roda com jogo ou tela cheia aberta. Não apaga programas nem seus arquivos.",
+                delegate { Ui.Background("Ligar limpeza em segundo plano", delegate { Maint.ScheduleBackground(true); }); });
+
+            AddAction(flow, "Desligar limpeza em segundo plano",
+                "Para de abrir junto com o Windows. Se o ícone estiver na bandeja, clique com o botão direito nele e escolha Sair.",
+                delegate { Ui.Background("Desligar limpeza em segundo plano", delegate { Maint.ScheduleBackground(false); }); });
 
             AddAction(flow, "Ligar limpeza automática semanal",
                 "Todo domingo às 12h (se o PC estiver ligado) limpa só o lixo temporário, sem abrir janela. Não apaga programas nem seus arquivos.",

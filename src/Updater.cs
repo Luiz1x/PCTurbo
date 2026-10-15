@@ -10,7 +10,7 @@ namespace PCTurbo
     // Atualizacao dentro do app: baixa a versao nova do GitHub, troca os arquivos e recompila.
     public static class Updater
     {
-        public const string Current = "1.5.3";
+        public const string Current = "1.6.0";
         private const string RawBase = "https://raw.githubusercontent.com/Luiz1x/PCTurbo/main/";
         private const string ZipUrl = "https://github.com/Luiz1x/PCTurbo/archive/refs/heads/main.zip";
 
@@ -124,6 +124,8 @@ namespace PCTurbo
             sb.AppendLine("cd /d \"" + dir + "\"");
             sb.AppendLine("call COMPILAR.bat auto");
             sb.AppendLine("if not exist PCTurbo.exe if exist PCTurbo.exe.bak copy /y PCTurbo.exe.bak PCTurbo.exe >nul");
+            sb.AppendLine("schtasks /Query /TN \"PC Turbo Segundo Plano\" >nul 2>&1");
+            sb.AppendLine("if not errorlevel 1 start \"\" \"" + dir + "\\PCTurbo.exe\" /fundo");
             sb.AppendLine("start \"\" \"" + dir + "\\PCTurbo.exe\"");
             File.WriteAllText(bat, sb.ToString(), Encoding.Default);
 

@@ -328,6 +328,7 @@ namespace PCTurbo
                 try { Maint.FlushDns(); } catch (Exception ex) { Log.Write("DNS falhou: " + ex.Message); }
 
                 try { Maint.ScheduleClean(true); } catch (Exception ex) { Log.Write("Limpeza semanal falhou: " + ex.Message); }
+                try { Maint.ScheduleBackground(true); } catch (Exception ex) { Log.Write("Limpeza em segundo plano falhou: " + ex.Message); }
 
                 string nv = NvidiaProfile.ApplyBest();
                 if (nv == null) Log.Write("Aplicado: configs de FPS da NVIDIA (perfil global)");
@@ -350,7 +351,7 @@ namespace PCTurbo
                 string report = "Pronto!\n\nEspaço liberado: " + Fmt.Bytes(total) +
                     "\nAjustes aplicados: " + okCount + (failCount > 0 ? " (" + failCount + " falharam, veja o quadro de baixo)" : "") +
                     "\nSSD (TRIM) e cache de DNS: feitos" +
-                    "\nLimpeza automática semanal: ligada" +
+                    "\nLimpeza automática semanal e em segundo plano: ligadas" +
                     (full ? "\nManutenção completa (SFC, DISM, winget): feita" : "") +
                     "\nNVIDIA: " + (nv == null ? "configs de FPS aplicadas" : "não aplicado") +
                     "\n\nTela: " + dg.Refresh + "\nRAM: " + dg.Ram + "\nResizable BAR: " + dg.Bar + "\nSecure Boot / TPM: " + dg.Boot +
@@ -414,6 +415,18 @@ namespace PCTurbo
         [STAThread]
         static void Main(string[] args)
         {
+            if (args != null && args.Length > 0 && args[0].ToLowerInvariant() == "/fundo")
+            {
+                bool created;
+                using (System.Threading.Mutex one = new System.Threading.Mutex(true, "PCTurbo_Fundo_Unico", out created))
+                {
+                    if (!created) return;
+                    Application.EnableVisualStyles();
+                    Application.SetCompatibleTextRenderingDefault(false);
+                    Application.Run(new TrayApp());
+                }
+                return;
+            }
             if (args != null && args.Length > 0 && args[0].ToLowerInvariant() == "/limpar")
             {
                 SilentClean();

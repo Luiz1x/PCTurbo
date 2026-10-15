@@ -111,3 +111,7 @@ NOVIDADES DA 1.5.2
 
 NOVIDADES DA 1.5.3
 - OTIMIZAR TUDO volta a esvaziar a Lixeira (a pedido). Fora da limpeza semanal automatica.
+
+NOVIDADES DA 1.6.0
+- Limpeza em segundo plano (aba Manutencao e OTIMIZAR TUDO): fica na bandeja e limpa o lixo temporario sozinha
+  quando passa de 3 GB ou o disco C: tem menos de 10% livre. Nunca roda com jogo/tela cheia aberta.
