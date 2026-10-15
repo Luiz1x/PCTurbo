@@ -90,7 +90,7 @@ namespace PCTurbo
             tabs.Dock = DockStyle.Fill;
             tabs.DrawMode = TabDrawMode.OwnerDrawFixed;
             tabs.SizeMode = TabSizeMode.Fixed;
-            tabs.ItemSize = new Size(128, 38);
+            tabs.ItemSize = new Size(114, 38);
             tabs.Padding = new Point(14, 6);
             tabs.DrawItem += DrawTab;
 
@@ -100,6 +100,7 @@ namespace PCTurbo
             dash.ReportAction = MakeReport;
 
             AddTab("Painel", dash);
+            AddTab("Meu ganho", new GainTab());
             AddTab("Limpeza", new CleanTab());
             AddTab("Otimização", new TweaksTab());
             AddTab("NVIDIA 3D", new NvidiaTab());
@@ -332,6 +333,20 @@ namespace PCTurbo
                 Report.StartBaseline();
                 Maint.RestorePoint("PC Turbo - antes da otimizacao");
 
+                System.Collections.Generic.List<string> cleanedList = new System.Collections.Generic.List<string>();
+                System.Collections.Generic.List<string> fixesList = new System.Collections.Generic.List<string>();
+                System.Collections.Generic.List<string> warnList = new System.Collections.Generic.List<string>();
+
+                // quanto lixo tinha antes de limpar
+                long found = 0;
+                foreach (CleanTarget t in Cleaner.Targets())
+                {
+                    if (!t.Default) continue;
+                    try { found += t.Size(); }
+                    catch { }
+                }
+                Log.Write("Lixo encontrado: " + Fmt.Bytes(found));
+
                 long total = 0;
                 foreach (CleanTarget t in Cleaner.Targets())
                 {
@@ -340,6 +355,7 @@ namespace PCTurbo
                     try { freed = t.Clean(); }
                     catch (Exception ex) { Log.Write("Falhou: " + t.Name + " - " + ex.Message); }
                     total += freed;
+                    if (freed > 0) cleanedList.Add(t.Name + " - " + Fmt.Bytes(freed));
                     Log.Write("Limpo: " + t.Name + " (" + Fmt.Bytes(freed) + ")");
                 }
                 Log.Write("Espaço liberado: " + Fmt.Bytes(total));
@@ -353,6 +369,7 @@ namespace PCTurbo
                     {
                         tw.Apply();
                         okCount++;
+                        fixesList.Add(tw.Name);
                         Log.Write("Aplicado: " + tw.Name);
                     }
                     catch (Exception ex)
@@ -380,6 +397,14 @@ namespace PCTurbo
                 Log.Write("Memória RAM: " + dg.Ram);
                 Log.Write("Resizable BAR: " + dg.Bar);
                 Log.Write("Secure Boot / TPM: " + dg.Boot);
+
+                if (dg.RefreshKnown && !dg.RefreshOk) warnList.Add("Taxa da tela: " + dg.Refresh);
+                if (dg.RamKnown && !dg.RamOk) warnList.Add("Memória RAM: " + dg.Ram);
+                if (dg.BarKnown && !dg.BarOk) warnList.Add("Resizable BAR: " + dg.Bar);
+                if (dg.PlanKnown && !dg.PlanOk) warnList.Add("Plano de energia: " + dg.Plan);
+                if (dg.DiskKnown && !dg.DiskOk) warnList.Add("Saúde do disco: " + dg.Disk);
+                if (dg.BootKnown && !dg.BootOk) warnList.Add("Secure Boot / TPM: " + dg.Boot);
+                Report.SaveRun(found, cleanedList, fixesList, warnList);
 
                 if (full)
                 {

@@ -135,3 +135,6 @@ NOVIDADES DA 1.8.3
 
 NOVIDADES DA 1.9.0
 - Relatorio de ganho: no primeiro OTIMIZAR TUDO o app guarda uma foto do PC (programas rodando, RAM, CPU parada, espaco livre). Depois de reiniciar, o botao "Gerar relatorio de ganho" no Painel compara antes e depois e salva PCTurbo_relatorio.txt na Area de Trabalho, pronto para enviar. Soma tambem o lixo removido (manual, semanal e em segundo plano). Nao mede FPS e nao envia nada para a internet. Nao leva nome de usuario.
+
+NOVIDADES DA 1.9.1
+- Nova aba "Meu ganho": tela simples com quanto lixo o PC tinha, quanto foi removido, o que foi limpo, os ajustes aplicados e o que precisa de atencao. Mais abaixo, o antes e agora (programas, RAM, CPU). O botao Salvar relatorio gera o arquivo para enviar.

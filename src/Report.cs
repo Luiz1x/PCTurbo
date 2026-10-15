@@ -181,6 +181,105 @@ namespace PCTurbo
             return s;
         }
 
+        // Guarda o resumo da ultima otimizacao: lixo que tinha, o que foi limpo, o que foi corrigido, avisos
+        public static void SaveRun(long found, List<string> cleaned, List<string> fixes, List<string> warns)
+        {
+            try
+            {
+                lock (fileLock)
+                {
+                    Dictionary<string, string> d = Load();
+                    List<string> old = new List<string>();
+                    foreach (string k in d.Keys)
+                    {
+                        if (k.StartsWith("ult_")) old.Add(k);
+                    }
+                    foreach (string k in old) d.Remove(k);
+
+                    d["ult_quando"] = DateTime.Now.ToString("dd/MM/yyyy HH:mm");
+                    d["ult_achado"] = N(found);
+                    if (!d.ContainsKey("primeiro_achado")) d["primeiro_achado"] = N(found);
+                    PutList(d, "ult_l_", cleaned);
+                    PutList(d, "ult_f_", fixes);
+                    PutList(d, "ult_w_", warns);
+                    Save(d);
+                }
+            }
+            catch { }
+        }
+
+        private static void PutList(Dictionary<string, string> d, string prefix, List<string> items)
+        {
+            if (items == null) return;
+            d[prefix + "n"] = items.Count.ToString(CultureInfo.InvariantCulture);
+            for (int i = 0; i < items.Count; i++)
+            {
+                d[prefix + i.ToString(CultureInfo.InvariantCulture)] = items[i].Replace("\r", " ").Replace("\n", " ");
+            }
+        }
+
+        private static List<string> GetList(Dictionary<string, string> d, string prefix)
+        {
+            List<string> r = new List<string>();
+            int n = (int)ReadNum(d, prefix + "n", 0);
+            for (int i = 0; i < n; i++)
+            {
+                string v;
+                if (d.TryGetValue(prefix + i.ToString(CultureInfo.InvariantCulture), out v)) r.Add(v);
+            }
+            return r;
+        }
+
+        public static bool LoadRun(out long found, out string when, out List<string> cleaned, out List<string> fixes, out List<string> warns)
+        {
+            lock (fileLock)
+            {
+                Dictionary<string, string> d = Load();
+                found = (long)ReadNum(d, "ult_achado", 0);
+                string w;
+                when = d.TryGetValue("ult_quando", out w) ? w : "";
+                cleaned = GetList(d, "ult_l_");
+                fixes = GetList(d, "ult_f_");
+                warns = GetList(d, "ult_w_");
+                return when.Length > 0;
+            }
+        }
+
+        // Para a aba "Meu ganho": o "antes" guardado (ou null) e os totais
+        public static Snap LoadBefore()
+        {
+            lock (fileLock)
+            {
+                Dictionary<string, string> d = Load();
+                if (!d.ContainsKey("antes_when")) return null;
+                return Get(d, "antes_");
+            }
+        }
+
+        public static void Totals(out long cleanedBytes, out int cleanings, out int runs, out string last)
+        {
+            lock (fileLock)
+            {
+                Dictionary<string, string> d = Load();
+                cleanedBytes = (long)ReadNum(d, "limpo_bytes", 0);
+                cleanings = (int)ReadNum(d, "limpezas", 0);
+                runs = (int)ReadNum(d, "otimizacoes", 0);
+                string l;
+                last = d.TryGetValue("ultima_otimizacao", out l) ? l : "";
+            }
+        }
+
+        // better: 1 melhorou, -1 piorou, 0 igual
+        public static string Diff(double before, double after, string unit, bool lowerIsBetter, out int better)
+        {
+            double diff = after - before;
+            if (Math.Abs(diff) < 0.0001) better = 0;
+            else better = ((diff < 0) == lowerIsBetter) ? 1 : -1;
+            string sign = diff > 0 ? "+" : (diff < 0 ? "-" : "");
+            double pct = before > 0 ? Math.Abs(diff) / before * 100.0 : 0;
+            return sign + N(Math.Round(Math.Abs(diff), 1)) + unit + " (" + pct.ToString("0") + "%)";
+        }
+
         // Chamado no comeco do OTIMIZAR TUDO. So grava o "antes" uma vez (o primeiro de todos).
         public static void StartBaseline()
         {
