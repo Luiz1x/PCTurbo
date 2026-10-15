@@ -59,10 +59,10 @@ namespace PCTurbo
             safe.Height = 70;
             safe.Margin = new Padding(6, 4, 0, 0);
             safe.Padding = new Padding(10, 6, 10, 6);
-            safe.BackColor = Color.FromArgb(232, 246, 237);
-            safe.ForeColor = Color.FromArgb(20, 90, 50);
+            safe.BackColor = Color.FromArgb(18, 48, 34);
+            safe.ForeColor = Color.FromArgb(150, 232, 182);
             safe.Text = "Pode confiar: o OTIMIZAR TUDO não desinstala nenhum programa, não apaga jogos, fotos, downloads nem documentos, e não mexe em Xbox, Game Pass, Riot/Vanguard, Epic, Steam, Discord nem nos drivers. " +
-                "Ele só limpa lixo temporário e muda ajustes do Windows que podem ser desfeitos na aba Otimização.";
+                "Ele limpa lixo temporário, esvazia a Lixeira e muda ajustes do Windows que podem ser desfeitos com o botão Desfazer.";
             flow.Controls.Add(safe);
 
             flow.Controls.Add(Section("Seu computador"));
@@ -142,7 +142,7 @@ namespace PCTurbo
         private static void ShowDiag(Label l, string text, bool known, bool ok)
         {
             l.Text = text;
-            l.ForeColor = !known ? SystemColors.ControlText : (ok ? Color.SeaGreen : Color.OrangeRed);
+            l.ForeColor = !known ? Theme.Text : (ok ? Theme.AccentText : Theme.Warn);
         }
 
         private Label Section(string text)
@@ -153,7 +153,7 @@ namespace PCTurbo
             l.Height = 32;
             l.Margin = new Padding(0, 14, 0, 2);
             l.Font = new Font("Segoe UI", 11.5f, FontStyle.Bold);
-            l.ForeColor = Color.FromArgb(24, 130, 70);
+            l.ForeColor = Theme.AccentText;
             l.TextAlign = ContentAlignment.BottomLeft;
             return l;
         }
@@ -201,7 +201,7 @@ namespace PCTurbo
             t.Height = 24;
             t.TextAlign = ContentAlignment.MiddleLeft;
 
-            ProgressBar pb = new ProgressBar();
+            ProgressBar pb = new FlatBar();
             pb.Minimum = 0;
             pb.Maximum = 100;
             pb.Width = 400;
@@ -307,7 +307,7 @@ namespace PCTurbo
                 int pct = (int)(((tot - free) * 100) / tot);
                 barDisk.Value = Math.Max(0, Math.Min(100, pct));
                 valDisk.Text = Fmt.Bytes(free) + " livres de " + Fmt.Bytes(tot) + " (" + pct + " % usado)";
-                valDisk.ForeColor = pct >= 85 ? Color.OrangeRed : SystemColors.ControlText;
+                valDisk.ForeColor = pct >= 85 ? Theme.Warn : Theme.Text;
             }
             catch { }
 
@@ -398,7 +398,7 @@ namespace PCTurbo
 
             barGpuTemp.Value = Math.Max(0, Math.Min(100, temp));
             valGpuTemp.Text = temp + " °C";
-            valGpuTemp.ForeColor = temp >= 80 ? Color.OrangeRed : SystemColors.ControlText;
+            valGpuTemp.ForeColor = temp >= 80 ? Theme.Warn : Theme.Text;
 
             barGpuUse.Value = Math.Max(0, Math.Min(100, use));
             valGpuUse.Text = use + " %";

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Globalization;
@@ -320,11 +320,13 @@ namespace PCTurbo
                 if (p.Order == 1)
                 {
                     it.BackColor = Color.FromArgb(255, 224, 204);
+                    it.ForeColor = Color.Black;
                     stale++;
                 }
                 else if (p.Order == 2)
                 {
                     it.BackColor = Color.FromArgb(255, 245, 200);
+                    it.ForeColor = Color.Black;
                     stale++;
                 }
                 lv.Items.Add(it);

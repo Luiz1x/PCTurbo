@@ -17,7 +17,8 @@ namespace PCTurbo
             this.ClientSize = new Size(1100, 780);
             this.MinimumSize = new Size(960, 620);
             this.StartPosition = FormStartPosition.CenterScreen;
-            this.BackColor = Color.FromArgb(244, 246, 249);
+            this.BackColor = Theme.Bg;
+            this.ForeColor = Theme.Text;
             this.Font = new Font("Segoe UI", 9.5f);
             try { this.Icon = MakeIcon(); } catch { }
 
@@ -33,6 +34,13 @@ namespace PCTurbo
             Panel header = new Panel();
             header.Dock = DockStyle.Fill;
             header.BackColor = Color.FromArgb(17, 20, 26);
+            header.Tag = "keep";
+
+            Panel accentLine = new Panel();
+            accentLine.Dock = DockStyle.Bottom;
+            accentLine.Height = 2;
+            accentLine.BackColor = Theme.Accent;
+            accentLine.Tag = "keep";
 
             Label title = new Label();
             title.Text = "PC Turbo";
@@ -69,6 +77,7 @@ namespace PCTurbo
             btnUpd.Cursor = Cursors.Hand;
             btnUpd.Location = new Point(1100 - 330 - 16 - 120 - 12, 11);
 
+            header.Controls.Add(accentLine);
             header.Controls.Add(btnUpd);
             header.Controls.Add(title);
             header.Controls.Add(sub);
@@ -80,7 +89,7 @@ namespace PCTurbo
             tabs.Dock = DockStyle.Fill;
             tabs.DrawMode = TabDrawMode.OwnerDrawFixed;
             tabs.SizeMode = TabSizeMode.Fixed;
-            tabs.ItemSize = new Size(138, 36);
+            tabs.ItemSize = new Size(146, 38);
             tabs.Padding = new Point(14, 6);
             tabs.DrawItem += DrawTab;
 
@@ -103,7 +112,8 @@ namespace PCTurbo
             txtLog.ScrollBars = ScrollBars.Vertical;
             txtLog.Dock = DockStyle.Fill;
             txtLog.Font = new Font("Consolas", 9f);
-            txtLog.BackColor = Color.FromArgb(18, 18, 18);
+            txtLog.BackColor = Color.FromArgb(10, 12, 16);
+            txtLog.Tag = "keep";
             txtLog.ForeColor = Color.FromArgb(120, 230, 140);
 
             root.Controls.Add(header, 0, 0);
@@ -111,6 +121,7 @@ namespace PCTurbo
             root.Controls.Add(txtLog, 0, 2);
             this.Controls.Add(root);
 
+            Theme.Apply(this);
             Ui.BusyHost = tabs;
             Log.Sink = delegate(string line)
             {
@@ -163,19 +174,26 @@ namespace PCTurbo
         {
             bool sel = (e.Index == tabs.SelectedIndex);
             Rectangle r = tabs.GetTabRect(e.Index);
-            Color back = sel ? Color.White : Color.FromArgb(232, 236, 241);
+            Color back = sel ? Theme.Card : Theme.Strip;
             using (SolidBrush bg = new SolidBrush(back))
             {
                 e.Graphics.FillRectangle(bg, r);
             }
+            if (e.Index == tabs.TabCount - 1)
+            {
+                using (SolidBrush strip = new SolidBrush(Theme.Strip))
+                {
+                    e.Graphics.FillRectangle(strip, r.Right, 0, tabs.Width - r.Right, r.Bottom + 2);
+                }
+            }
             if (sel)
             {
-                using (SolidBrush acc = new SolidBrush(Color.FromArgb(34, 177, 90)))
+                using (SolidBrush acc = new SolidBrush(Theme.Accent))
                 {
                     e.Graphics.FillRectangle(acc, r.X, r.Bottom - 3, r.Width, 3);
                 }
             }
-            Color fore = sel ? Color.FromArgb(17, 20, 26) : Color.FromArgb(90, 98, 110);
+            Color fore = sel ? Color.White : Theme.Muted;
             TextRenderer.DrawText(e.Graphics, tabs.TabPages[e.Index].Text, sel ? tabFontBold : tabFont, r, fore,
                 TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
         }
@@ -273,7 +291,7 @@ namespace PCTurbo
             DialogResult r = MessageBox.Show(
                 "Vou fazer tudo de uma vez:\n" +
                 "- criar um ponto de restauração\n" +
-                "- limpar os arquivos inúteis\n" +
+                "- limpar os arquivos inúteis e esvaziar a Lixeira\n" +
                 "- aplicar os ajustes recomendados do Windows\n" +
                 "- aplicar as configs de FPS da NVIDIA\n" +
                 "- otimizar o SSD (TRIM) e limpar o cache de DNS\n" +
@@ -405,7 +423,7 @@ namespace PCTurbo
             Log.Write("Limpeza automática semanal iniciada.");
             foreach (CleanTarget t in Cleaner.Targets())
             {
-                if (!t.Default) continue;
+                if (!t.Default || t.Name == "Lixeira") continue;
                 try { total += t.Clean(); }
                 catch (Exception ex) { Log.Write("Falhou: " + t.Name + " - " + ex.Message); }
             }

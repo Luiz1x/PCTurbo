@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
@@ -36,6 +36,7 @@ namespace PCTurbo
             Control layout = Ui.Layout(desc, lv, Ui.Buttons(bClose, bReload));
             layout.Dock = DockStyle.Fill;
             this.Controls.Add(layout);
+            Theme.Apply(this);
             Reload();
         }
 

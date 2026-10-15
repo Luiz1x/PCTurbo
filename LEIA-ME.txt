@@ -97,3 +97,7 @@ NOVIDADES DA 1.4.1
 
 NOVIDADES DA 1.4.2
 - A checagem de versao agora usa a API do GitHub, que atualiza mais rapido.
+
+NOVIDADES DA 1.5.0
+- Visual escuro novo (abas, botoes, barras e listas).
+- OTIMIZAR TUDO agora tambem esvazia a Lixeira (fora da limpeza semanal automatica).
