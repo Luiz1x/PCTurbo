@@ -362,14 +362,13 @@ namespace PCTurbo
                     Log.Write("Manutenção completa: isso demora, pode deixar o PC trabalhando.");
                     try { Maint.Sfc(); } catch (Exception ex) { Log.Write("SFC falhou: " + ex.Message); }
                     try { Maint.Dism(); } catch (Exception ex) { Log.Write("DISM falhou: " + ex.Message); }
-                    try { Maint.Winget(); } catch (Exception ex) { Log.Write("winget falhou: " + ex.Message); }
                 }
 
                 string report = "Pronto!\n\nEspaço liberado: " + Fmt.Bytes(total) +
                     "\nAjustes aplicados: " + okCount + (failCount > 0 ? " (" + failCount + " falharam, veja o quadro de baixo)" : "") +
                     "\nSSD (TRIM) e cache de DNS: feitos" +
                     "\nLimpeza automática semanal e em segundo plano: ligadas" +
-                    (full ? "\nManutenção completa (SFC, DISM, winget): feita" : "") +
+                    (full ? "\nManutenção completa (SFC e DISM): feita" : "") +
                     "\nNVIDIA: " + (nv == null ? "configs de FPS aplicadas" : "não aplicado") +
                     "\n\nTela: " + dg.Refresh + "\nRAM: " + dg.Ram + "\nResizable BAR: " + dg.Bar + "\nSecure Boot / TPM: " + dg.Boot +
                     "\n\nPara tudo valer, o PC precisa reiniciar. Reiniciar agora?";

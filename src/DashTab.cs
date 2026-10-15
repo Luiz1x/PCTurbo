@@ -56,7 +56,7 @@ namespace PCTurbo
             flow.Controls.Add(big);
 
             ChkFull = new CheckBox();
-            ChkFull.Text = "Incluir manutenção completa (reparar Windows, limpar componentes e atualizar programas: 20 a 40 minutos)";
+            ChkFull.Text = "Incluir manutenção completa (reparar arquivos do Windows e limpar componentes: alguns minutos). Não atualiza nenhum programa";
             ChkFull.AutoSize = true;
             ChkFull.Margin = new Padding(8, 4, 0, 4);
             flow.Controls.Add(ChkFull);

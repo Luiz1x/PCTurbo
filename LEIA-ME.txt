@@ -129,3 +129,6 @@ NOVIDADES DA 1.8.1
 
 NOVIDADES DA 1.8.2
 - CORRECAO: o winget (Atualizar programas / manutencao completa) reinstalava o Epic Games Launcher com um instalador mais antigo e quebrava a Epic. Agora launchers de jogos (Epic, Steam, Riot, Discord, Battle.net, Ubisoft, EA, Rockstar, GOG) ficam bloqueados no winget.
+
+NOVIDADES DA 1.8.3
+- O OTIMIZAR TUDO nao atualiza mais NENHUM programa (nem na manutencao completa). Atualizar programas so pelo botao manual da aba Manutencao.
