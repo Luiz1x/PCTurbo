@@ -94,3 +94,6 @@ NOVIDADES DA 1.4.0
 
 NOVIDADES DA 1.4.1
 - Corrigi o texto do Painel que aparecia cortado.
+
+NOVIDADES DA 1.4.2
+- A checagem de versao agora usa a API do GitHub, que atualiza mais rapido.

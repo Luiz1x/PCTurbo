@@ -10,7 +10,7 @@ namespace PCTurbo
     // Atualizacao dentro do app: baixa a versao nova do GitHub, troca os arquivos e recompila.
     public static class Updater
     {
-        public const string Current = "1.4.1";
+        public const string Current = "1.4.2";
         private const string RawBase = "https://raw.githubusercontent.com/Luiz1x/PCTurbo/main/";
         private const string ZipUrl = "https://github.com/Luiz1x/PCTurbo/archive/refs/heads/main.zip";
 
@@ -29,13 +29,23 @@ namespace PCTurbo
         }
 
         // Devolve a versao mais nova publicada, ou null se nao deu pra checar.
+        // Tenta a API do GitHub primeiro (quase sem cache) e depois o arquivo direto.
         public static string LatestVersion()
+        {
+            string v = ReadVersion("https://api.github.com/repos/Luiz1x/PCTurbo/contents/version.txt?ref=main&t=" + DateTime.Now.Ticks, true);
+            if (v == null) v = ReadVersion(RawBase + "version.txt?t=" + DateTime.Now.Ticks, false);
+            return v;
+        }
+
+        private static string ReadVersion(string url, bool api)
         {
             try
             {
                 using (WebClient wc = NewClient())
                 {
-                    string v = wc.DownloadString(RawBase + "version.txt?t=" + DateTime.Now.Ticks).Trim();
+                    if (api) wc.Headers.Add("Accept", "application/vnd.github.v3.raw");
+                    wc.Headers.Add("Cache-Control", "no-cache");
+                    string v = wc.DownloadString(url).Trim();
                     System.Version tmp;
                     if (!System.Version.TryParse(v, out tmp)) return null;
                     return v;
