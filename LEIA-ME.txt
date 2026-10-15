@@ -123,3 +123,6 @@ NOVIDADES DA 1.7.0
 NOVIDADES DA 1.8.0
 - Nova aba Prioridades (estilo Process Lasso): escolha a prioridade de cada programa (Baixa a Alta). A regra fica salva e a bandeja reaplica sempre que o programa abrir.
 - Windows, Riot/Vanguard, anti-cheat, drivers e launchers sao protegidos.
+
+NOVIDADES DA 1.8.1
+- Ao minimizar o PC Turbo (sem tarefa rodando), ele vai para a bandeja e fica em segundo plano. Para abrir: duplo clique no icone da bandeja.

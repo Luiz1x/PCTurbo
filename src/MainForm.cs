@@ -10,6 +10,7 @@ namespace PCTurbo
         private TextBox txtLog;
         private DashTab dash;
         private Button btnUpd;
+        private bool goingToTray;
 
         public MainForm()
         {
@@ -121,6 +122,21 @@ namespace PCTurbo
             root.Controls.Add(tabs, 0, 1);
             root.Controls.Add(txtLog, 0, 2);
             this.Controls.Add(root);
+
+            // Minimizar manda o PC Turbo para a bandeja (se nao tiver tarefa rodando)
+            this.Resize += delegate
+            {
+                if (this.WindowState != FormWindowState.Minimized || goingToTray || Ui.Busy) return;
+                goingToTray = true;
+                try { System.Diagnostics.Process.Start(Application.ExecutablePath, "/fundo"); }
+                catch (Exception ex)
+                {
+                    goingToTray = false;
+                    Log.Write("Não consegui ir para a bandeja: " + ex.Message);
+                    return;
+                }
+                this.BeginInvoke(new Action(delegate { Application.Exit(); }));
+            };
 
             Theme.Apply(this);
             Ui.BusyHost = tabs;
