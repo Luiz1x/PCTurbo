@@ -10,7 +10,7 @@ namespace PCTurbo
     // Atualizacao dentro do app: baixa a versao nova do GitHub, troca os arquivos e recompila.
     public static class Updater
     {
-        public const string Current = "1.5.2";
+        public const string Current = "1.5.3";
         private const string RawBase = "https://raw.githubusercontent.com/Luiz1x/PCTurbo/main/";
         private const string ZipUrl = "https://github.com/Luiz1x/PCTurbo/archive/refs/heads/main.zip";
 

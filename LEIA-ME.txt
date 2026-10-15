@@ -108,3 +108,6 @@ NOVIDADES DA 1.5.1
 
 NOVIDADES DA 1.5.2
 - REGRA: o OTIMIZAR TUDO nunca remove nada que voce possa usar. A Lixeira voltou a ficar DESMARCADA (nao e esvaziada sozinha).
+
+NOVIDADES DA 1.5.3
+- OTIMIZAR TUDO volta a esvaziar a Lixeira (a pedido). Fora da limpeza semanal automatica.

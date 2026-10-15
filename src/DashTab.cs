@@ -68,7 +68,7 @@ namespace PCTurbo
             safe.Padding = new Padding(10, 6, 10, 6);
             safe.BackColor = Color.FromArgb(18, 48, 34);
             safe.ForeColor = Color.FromArgb(150, 232, 182);
-            safe.Text = "Garantia: o OTIMIZAR TUDO nunca remove nada que você possa usar ou precisar. Não desinstala programas, não esvazia a Lixeira, não apaga jogos, fotos, downloads nem documentos, e não mexe em Xbox, Game Pass, Riot/Vanguard, Epic, Steam, Discord nem nos drivers. " +
+            safe.Text = "Garantia: o OTIMIZAR TUDO nunca remove nada que você possa usar ou precisar. Não desinstala programas, não apaga jogos, fotos, downloads nem documentos (a Lixeira é esvaziada: só o que você já apagou), e não mexe em Xbox, Game Pass, Riot/Vanguard, Epic, Steam, Discord nem nos drivers. " +
                 "Ele só limpa lixo temporário (caches) e muda ajustes do Windows que você pode desfazer com o botão Desfazer.";
             flow.Controls.Add(safe);
 
