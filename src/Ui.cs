@@ -166,7 +166,7 @@ namespace PCTurbo
                     c.BackColor = Field;
                     c.ForeColor = Text;
                 }
-                else if (c is TextBox || c is NumericUpDown)
+                else if (c is TextBox || c is NumericUpDown || c is ComboBox)
                 {
                     c.BackColor = Field;
                     c.ForeColor = Text;

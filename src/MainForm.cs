@@ -89,7 +89,7 @@ namespace PCTurbo
             tabs.Dock = DockStyle.Fill;
             tabs.DrawMode = TabDrawMode.OwnerDrawFixed;
             tabs.SizeMode = TabSizeMode.Fixed;
-            tabs.ItemSize = new Size(146, 38);
+            tabs.ItemSize = new Size(128, 38);
             tabs.Padding = new Point(14, 6);
             tabs.DrawItem += DrawTab;
 
@@ -103,6 +103,7 @@ namespace PCTurbo
             AddTab("NVIDIA 3D", new NvidiaTab());
             AddTab("Programas", new ProgramsTab());
             AddTab("Inicialização", new StartupTab());
+            AddTab("Prioridades", new PriorityTab());
             AddTab("Manutenção", new MaintTab());
 
             // Log

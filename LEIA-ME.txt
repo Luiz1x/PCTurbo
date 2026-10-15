@@ -119,3 +119,7 @@ NOVIDADES DA 1.6.0
 NOVIDADES DA 1.7.0
 - Equilibrio de CPU estilo ProBalance (bandeja): baixa a prioridade de programas em segundo plano que pesam demais e devolve depois. Nunca mexe no programa da frente, em jogos/anti-cheat, drivers ou Windows.
 - A limpeza automatica (bandeja e semanal) agora tambem esvazia a Lixeira.
+
+NOVIDADES DA 1.8.0
+- Nova aba Prioridades (estilo Process Lasso): escolha a prioridade de cada programa (Baixa a Alta). A regra fica salva e a bandeja reaplica sempre que o programa abrir.
+- Windows, Riot/Vanguard, anti-cheat, drivers e launchers sao protegidos.

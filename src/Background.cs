@@ -31,6 +31,7 @@ namespace PCTurbo
         private DateTime lastClean = DateTime.MinValue;
         private Balancer balancer = new Balancer();
         private System.Windows.Forms.Timer balanceTimer;
+        private System.Windows.Forms.Timer ruleTimer;
 
         public TrayApp()
         {
@@ -65,6 +66,11 @@ namespace PCTurbo
             balanceTimer.Tick += delegate { try { balancer.Tick(); } catch { } };
             balanceTimer.Start();
 
+            ruleTimer = new System.Windows.Forms.Timer();
+            ruleTimer.Interval = 8000;
+            ruleTimer.Tick += delegate { try { PriorityRules.ApplyAll(); } catch { } };
+            ruleTimer.Start();
+
             Log.Write("Limpeza automática em segundo plano iniciada.");
         }
 
@@ -78,6 +84,7 @@ namespace PCTurbo
         {
             timer.Stop();
             balanceTimer.Stop();
+            ruleTimer.Stop();
             balancer.RestoreAll();
             icon.Visible = false;
             icon.Dispose();
@@ -177,6 +184,11 @@ namespace PCTurbo
             "^(system|idle|registry|memcompression|smss|csrss|wininit|winlogon|services|lsass|svchost|dwm|explorer|fontdrvhost|audiodg|sihost|taskhostw|ctfmon|searchhost|searchindexer|startmenuexperiencehost|shellexperiencehost|textinputhost|runtimebroker|securityhealth.*|msmpeng|nissrv|nvcontainer|nvdisplay.*|nvidia.*|nvspcap.*|nvtelemetry.*|vgc|vgtray|riot.*|valorant.*|league.*|easyanticheat.*|beservice|battleye.*|xbox.*|gamebar.*|gamingservices.*|steam.*|epicgames.*|epicwebhelper|discord.*|obs.*|pcturbo|msedgewebview2|attack.*|havit.*|conhost|wudfhost|dllhost|lsaiso|spoolsv)$",
             RegexOptions.IgnoreCase);
 
+        public static bool IsProtected(string name)
+        {
+            return Protected.IsMatch(name);
+        }
+
         [DllImport("user32.dll")]
         private static extern IntPtr GetForegroundWindow();
 
@@ -249,6 +261,7 @@ namespace PCTurbo
             lastSample = now;
             int me = Process.GetCurrentProcess().Id;
             Dictionary<int, TimeSpan> current = new Dictionary<int, TimeSpan>();
+            Dictionary<string, ProcessPriorityClass> rules = PriorityRules.Load();
 
             foreach (Process p in Process.GetProcesses())
             {
@@ -257,6 +270,7 @@ namespace PCTurbo
                     int pid = p.Id;
                     if (pid == me || pid == fg || p.SessionId == 0) continue;
                     if (Protected.IsMatch(p.ProcessName)) continue;
+                    if (rules.ContainsKey(p.ProcessName.ToLowerInvariant())) continue;
 
                     TimeSpan t = p.TotalProcessorTime;
                     current[pid] = t;
