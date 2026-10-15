@@ -28,6 +28,7 @@ namespace PCTurbo
 
         public Action QuickAction;
         public Action UndoAction;
+        public CheckBox ChkFull;
 
         public DashTab()
         {
@@ -43,8 +44,8 @@ namespace PCTurbo
             flow.Controls.Add(Section("Comece por aqui"));
             Label note = new Label();
             note.Width = 900;
-            note.Height = 66;
-            note.Text = "Cria um ponto de restauração, limpa os arquivos inúteis e aplica os ajustes recomendados (os mesmos que já vêm marcados nas abas Limpeza e Otimização), as configs de FPS da NVIDIA, o relógio preciso para jogos, o TRIM do SSD e a limpeza semanal automática. Se quiser, ele ainda faz a manutenção completa. Depois é só reiniciar.";
+            note.Height = 84;
+            note.Text = "Cria um ponto de restauração, limpa os arquivos inúteis e aplica os ajustes recomendados (os mesmos que já vêm marcados nas abas Limpeza e Otimização), as configs de FPS da NVIDIA, o relógio preciso para jogos, o TRIM do SSD e a limpeza semanal automática. É só um clique: ele faz tudo sem perguntar nada e, no fim, oferece reiniciar.";
             flow.Controls.Add(note);
 
             Button big = Ui.BigButton("OTIMIZAR TUDO (1 clique)", 420, 64, delegate
@@ -53,6 +54,12 @@ namespace PCTurbo
             });
             big.Margin = new Padding(6);
             flow.Controls.Add(big);
+
+            ChkFull = new CheckBox();
+            ChkFull.Text = "Incluir manutenção completa (reparar Windows, limpar componentes e atualizar programas: 20 a 40 minutos)";
+            ChkFull.AutoSize = true;
+            ChkFull.Margin = new Padding(8, 4, 0, 4);
+            flow.Controls.Add(ChkFull);
 
             Label safe = new Label();
             safe.Width = 900;

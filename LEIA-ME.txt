@@ -101,3 +101,7 @@ NOVIDADES DA 1.4.2
 NOVIDADES DA 1.5.0
 - Visual escuro novo (abas, botoes, barras e listas).
 - OTIMIZAR TUDO agora tambem esvazia a Lixeira (fora da limpeza semanal automatica).
+
+NOVIDADES DA 1.5.1
+- OTIMIZAR TUDO virou 1 clique de verdade: nao pergunta nada, faz tudo e no fim oferece reiniciar.
+- Caixa "Incluir manutencao completa" no Painel (desmarcada por padrao).

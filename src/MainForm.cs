@@ -288,27 +288,8 @@ namespace PCTurbo
                 MessageBox.Show("Já tem uma tarefa rodando. Espere terminar.", "PC Turbo");
                 return;
             }
-            DialogResult r = MessageBox.Show(
-                "Vou fazer tudo de uma vez:\n" +
-                "- criar um ponto de restauração\n" +
-                "- limpar os arquivos inúteis e esvaziar a Lixeira\n" +
-                "- aplicar os ajustes recomendados do Windows\n" +
-                "- aplicar as configs de FPS da NVIDIA\n" +
-                "- otimizar o SSD (TRIM) e limpar o cache de DNS\n" +
-                "- ligar a limpeza automática semanal\n" +
-                "- fazer um diagnóstico do PC\n\n" +
-                "Nada é desinstalado. Continuar?",
-                "Otimizar tudo", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-            if (r != DialogResult.Yes) return;
-
-            DialogResult rf = MessageBox.Show(
-                "Quer incluir também a manutenção completa?\n\n" +
-                "- reparar arquivos do Windows (SFC)\n" +
-                "- limpar componentes antigos do Windows (DISM)\n" +
-                "- atualizar seus programas (winget)\n\n" +
-                "Demora de 20 a 40 minutos. Sim = faz tudo. Não = só a parte rápida (uns 2 minutos).",
-                "Otimizar tudo", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-            bool full = (rf == DialogResult.Yes);
+            bool full = (dash != null && dash.ChkFull != null && dash.ChkFull.Checked);
+            Log.Write("OTIMIZAR TUDO iniciado" + (full ? " (com manutenção completa)." : "."));
 
             Ui.Background("Limpeza e otimização completas", delegate
             {
