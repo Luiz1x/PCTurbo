@@ -77,11 +77,28 @@ namespace PCTurbo
             }
         }
 
+        // Launchers de jogos que o winget NUNCA deve atualizar (eles se atualizam sozinhos;
+        // o instalador do winget pode ser mais antigo e quebrar o launcher).
+        private static readonly string[] WingetBlock =
+        {
+            "EpicGames.EpicGamesLauncher", "Valve.Steam", "Discord.Discord", "Blizzard.BattleNet",
+            "Ubisoft.Connect", "ElectronicArts.EADesktop", "RockstarGames.Launcher", "GOG.Galaxy",
+            "RiotGames.Valorant.BR", "RiotGames.LeagueOfLegends.BR", "RiotGames.Valorant.NA", "RiotGames.LeagueOfLegends.NA"
+        };
+
         public static void Winget()
         {
-            Log.Write("Atualizando programas com o winget (pode demorar)...");
+            Log.Write("Atualizando programas com o winget (pode demorar). Launchers de jogos (Epic, Steam, Riot, Discord e outros) ficam de fora.");
             try
             {
+                foreach (string id in WingetBlock)
+                {
+                    try
+                    {
+                        Proc.Run("cmd.exe", "/c winget pin add --id " + id + " --blocking --accept-source-agreements", null, Encoding.UTF8);
+                    }
+                    catch { }
+                }
                 int rc = Proc.Run("cmd.exe",
                     "/c winget upgrade --all --silent --accept-source-agreements --accept-package-agreements --disable-interactivity",
                     LogFiltered, Encoding.UTF8);
@@ -162,7 +179,7 @@ namespace PCTurbo
             flow.Padding = new Padding(12);
 
             AddAction(flow, "Atualizar programas",
-                "Usa o winget para atualizar tudo que tiver versão nova (navegador, Discord, drivers de terceiros etc.).",
+                "Usa o winget para atualizar programas (navegador, .NET etc.). Launchers de jogos como Epic, Steam, Riot e Discord NUNCA são atualizados por aqui, porque se atualizam sozinhos.",
                 delegate { Ui.Background("Atualizar programas (winget)", delegate { Maint.Winget(); }); });
 
             AddAction(flow, "Limpar componentes do Windows (DISM)",

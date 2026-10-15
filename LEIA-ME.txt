@@ -126,3 +126,6 @@ NOVIDADES DA 1.8.0
 
 NOVIDADES DA 1.8.1
 - Ao minimizar o PC Turbo (sem tarefa rodando), ele vai para a bandeja e fica em segundo plano. Para abrir: duplo clique no icone da bandeja.
+
+NOVIDADES DA 1.8.2
+- CORRECAO: o winget (Atualizar programas / manutencao completa) reinstalava o Epic Games Launcher com um instalador mais antigo e quebrava a Epic. Agora launchers de jogos (Epic, Steam, Riot, Discord, Battle.net, Ubisoft, EA, Rockstar, GOG) ficam bloqueados no winget.
