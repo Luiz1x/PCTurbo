@@ -236,9 +236,26 @@ namespace PCTurbo
                 return;
             }
             DialogResult r = MessageBox.Show(
-                "Vou criar um ponto de restauração, limpar os arquivos inúteis e aplicar os ajustes recomendados (os que vêm marcados nas abas Limpeza e Otimização), as configs de FPS da NVIDIA e um diagnóstico de tela/RAM/Resizable BAR.\n\nContinuar?",
-                "Limpar e otimizar tudo", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                "Vou fazer tudo de uma vez:\n" +
+                "- criar um ponto de restauração\n" +
+                "- limpar os arquivos inúteis\n" +
+                "- aplicar os ajustes recomendados do Windows\n" +
+                "- aplicar as configs de FPS da NVIDIA\n" +
+                "- otimizar o SSD (TRIM) e limpar o cache de DNS\n" +
+                "- ligar a limpeza automática semanal\n" +
+                "- fazer um diagnóstico do PC\n\n" +
+                "Nada é desinstalado. Continuar?",
+                "Otimizar tudo", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
             if (r != DialogResult.Yes) return;
+
+            DialogResult rf = MessageBox.Show(
+                "Quer incluir também a manutenção completa?\n\n" +
+                "- reparar arquivos do Windows (SFC)\n" +
+                "- limpar componentes antigos do Windows (DISM)\n" +
+                "- atualizar seus programas (winget)\n\n" +
+                "Demora de 20 a 40 minutos. Sim = faz tudo. Não = só a parte rápida (uns 2 minutos).",
+                "Otimizar tudo", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            bool full = (rf == DialogResult.Yes);
 
             Ui.Background("Limpeza e otimização completas", delegate
             {
@@ -276,6 +293,8 @@ namespace PCTurbo
                 try { Maint.Trim(); } catch (Exception ex) { Log.Write("TRIM falhou: " + ex.Message); }
                 try { Maint.FlushDns(); } catch (Exception ex) { Log.Write("DNS falhou: " + ex.Message); }
 
+                try { Maint.ScheduleClean(true); } catch (Exception ex) { Log.Write("Limpeza semanal falhou: " + ex.Message); }
+
                 string nv = NvidiaProfile.ApplyBest();
                 if (nv == null) Log.Write("Aplicado: configs de FPS da NVIDIA (perfil global)");
                 else Log.Write("NVIDIA ignorado: " + nv);
@@ -286,9 +305,19 @@ namespace PCTurbo
                 Log.Write("Resizable BAR: " + dg.Bar);
                 Log.Write("Secure Boot / TPM: " + dg.Boot);
 
+                if (full)
+                {
+                    Log.Write("Manutenção completa: isso demora, pode deixar o PC trabalhando.");
+                    try { Maint.Sfc(); } catch (Exception ex) { Log.Write("SFC falhou: " + ex.Message); }
+                    try { Maint.Dism(); } catch (Exception ex) { Log.Write("DISM falhou: " + ex.Message); }
+                    try { Maint.Winget(); } catch (Exception ex) { Log.Write("winget falhou: " + ex.Message); }
+                }
+
                 string report = "Pronto!\n\nEspaço liberado: " + Fmt.Bytes(total) +
                     "\nAjustes aplicados: " + okCount + (failCount > 0 ? " (" + failCount + " falharam, veja o quadro de baixo)" : "") +
                     "\nSSD (TRIM) e cache de DNS: feitos" +
+                    "\nLimpeza automática semanal: ligada" +
+                    (full ? "\nManutenção completa (SFC, DISM, winget): feita" : "") +
                     "\nNVIDIA: " + (nv == null ? "configs de FPS aplicadas" : "não aplicado") +
                     "\n\nTela: " + dg.Refresh + "\nRAM: " + dg.Ram + "\nResizable BAR: " + dg.Bar + "\nSecure Boot / TPM: " + dg.Boot +
                     "\n\nPara tudo valer, o PC precisa reiniciar. Reiniciar agora?";
