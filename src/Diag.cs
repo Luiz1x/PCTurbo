@@ -15,6 +15,8 @@ namespace PCTurbo
         public bool RefreshKnown, RamKnown, BarKnown;
         public string Disk = "não consegui ler";
         public bool DiskKnown, DiskOk;
+        public string Boot = "não consegui ler";
+        public bool BootKnown, BootOk;
     }
 
     // Verificacoes que nao se resolvem por software: so avisa o que esta fora do ideal
@@ -31,6 +33,9 @@ namespace PCTurbo
                     "\"REF|$r\";" +
                     "$m=@(Get-CimInstance Win32_PhysicalMemory);" +
                     "\"RAM|$($m.Count)|$(($m | Select-Object -First 1).ConfiguredClockSpeed)|$(($m | Select-Object -First 1).Speed)\";" +
+                    "$sb='desconhecido'; try { $sb=[string](Confirm-SecureBootUEFI) } catch {};" +
+                    "$tp=Get-Tpm -ErrorAction SilentlyContinue;" +
+                    "\"SEC|$sb|$($tp.TpmPresent)|$($tp.TpmReady)\";" +
                     "Get-PhysicalDisk -ErrorAction SilentlyContinue | ForEach-Object { \"DSK|$($_.FriendlyName)|$($_.MediaType)|$($_.HealthStatus)\" }";
                 Proc.PowerShell(script, delegate(string line)
                 {
@@ -44,6 +49,15 @@ namespace PCTurbo
                             d.RefreshOk = hz >= 200;
                             d.Refresh = hz + " Hz" + (d.RefreshOk ? "" : " - seu monitor faz 240 Hz: ajuste em Configurações > Tela > Tela avançada");
                         }
+                    }
+                    else if (p.Length >= 4 && p[0] == "SEC")
+                    {
+                        bool sec = p[1].Trim().Equals("True", StringComparison.OrdinalIgnoreCase);
+                        bool tpm = p[2].Trim().Equals("True", StringComparison.OrdinalIgnoreCase);
+                        d.BootKnown = true;
+                        d.BootOk = sec && tpm;
+                        d.Boot = "Secure Boot " + (sec ? "ligado" : "DESLIGADO") + ", TPM " + (tpm ? "ativo" : "NÃO encontrado");
+                        d.Boot += d.BootOk ? " - ok (o Valorant exige os dois)" : " - o Valorant exige os dois: ative na BIOS";
                     }
                     else if (p.Length >= 4 && p[0] == "DSK")
                     {

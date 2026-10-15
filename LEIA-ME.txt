@@ -73,3 +73,7 @@ NOVIDADES DA 1.2.0
 - Botao "Desfazer ajustes do Otimizar" no Painel.
 - Limpeza automatica semanal (aba Manutencao): so lixo temporario, todo domingo 12h.
 - Se uma atualizacao falhar ao compilar, a versao anterior continua funcionando.
+
+NOVIDADES DA 1.3.0
+- Diagnostico mostra Secure Boot / TPM (o Valorant exige os dois ligados).
+- OTIMIZAR TUDO agora tambem faz TRIM do SSD e limpa o cache de DNS.

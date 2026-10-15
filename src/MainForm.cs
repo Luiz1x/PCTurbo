@@ -273,6 +273,9 @@ namespace PCTurbo
                     }
                 }
 
+                try { Maint.Trim(); } catch (Exception ex) { Log.Write("TRIM falhou: " + ex.Message); }
+                try { Maint.FlushDns(); } catch (Exception ex) { Log.Write("DNS falhou: " + ex.Message); }
+
                 string nv = NvidiaProfile.ApplyBest();
                 if (nv == null) Log.Write("Aplicado: configs de FPS da NVIDIA (perfil global)");
                 else Log.Write("NVIDIA ignorado: " + nv);
@@ -281,11 +284,13 @@ namespace PCTurbo
                 Log.Write("Taxa da tela: " + dg.Refresh);
                 Log.Write("Memória RAM: " + dg.Ram);
                 Log.Write("Resizable BAR: " + dg.Bar);
+                Log.Write("Secure Boot / TPM: " + dg.Boot);
 
                 string report = "Pronto!\n\nEspaço liberado: " + Fmt.Bytes(total) +
                     "\nAjustes aplicados: " + okCount + (failCount > 0 ? " (" + failCount + " falharam, veja o quadro de baixo)" : "") +
+                    "\nSSD (TRIM) e cache de DNS: feitos" +
                     "\nNVIDIA: " + (nv == null ? "configs de FPS aplicadas" : "não aplicado") +
-                    "\n\nTela: " + dg.Refresh + "\nRAM: " + dg.Ram + "\nResizable BAR: " + dg.Bar +
+                    "\n\nTela: " + dg.Refresh + "\nRAM: " + dg.Ram + "\nResizable BAR: " + dg.Bar + "\nSecure Boot / TPM: " + dg.Boot +
                     "\n\nPara tudo valer, o PC precisa reiniciar. Reiniciar agora?";
                 try
                 {

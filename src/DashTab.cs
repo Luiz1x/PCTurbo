@@ -16,7 +16,7 @@ namespace PCTurbo
         private Label lblGpu;
         private Label lblBoard;
         private Label lblUp;
-        private Label lblHz, lblRamInfo, lblBar, lblDriver, lblPlan, lblDisk;
+        private Label lblHz, lblRamInfo, lblBar, lblDriver, lblPlan, lblDisk, lblBoot;
         private ProgressBar barCpu, barRam, barDisk, barGpuTemp, barGpuUse, barVram;
         private Label valCpu, valRam, valDisk, valGpuTemp, valGpuUse, valVram;
         private System.Windows.Forms.Timer timer;
@@ -86,6 +86,7 @@ namespace PCTurbo
             lblBar = Info(flow, "Resizable BAR");
             lblPlan = Info(flow, "Plano de energia");
             lblDisk = Info(flow, "Saúde do disco");
+            lblBoot = Info(flow, "Secure Boot / TPM");
             lblDriver = Info(flow, "Driver NVIDIA");
             Button bDiag = Ui.Btn("Atualizar diagnóstico", 190, delegate { RunDiag(); });
             Button bGame = Ui.Btn("Modo Jogo (fechar apps)", 210, delegate
@@ -117,7 +118,7 @@ namespace PCTurbo
 
         private void RunDiag()
         {
-            lblHz.Text = lblRamInfo.Text = lblBar.Text = lblPlan.Text = lblDriver.Text = lblDisk.Text = "verificando...";
+            lblHz.Text = lblRamInfo.Text = lblBar.Text = lblPlan.Text = lblDriver.Text = lblDisk.Text = lblBoot.Text = "verificando...";
             ThreadPool.QueueUserWorkItem(delegate(object state)
             {
                 DiagResult d = Diag.Run();
@@ -130,6 +131,7 @@ namespace PCTurbo
                         ShowDiag(lblBar, d.Bar, d.BarKnown, d.BarOk);
                         ShowDiag(lblPlan, d.Plan, d.PlanKnown, d.PlanOk);
                         ShowDiag(lblDisk, d.Disk, d.DiskKnown, d.DiskOk);
+                        ShowDiag(lblBoot, d.Boot, d.BootKnown, d.BootOk);
                         lblDriver.Text = d.Driver;
                     }));
                 }
