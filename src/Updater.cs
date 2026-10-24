@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
 namespace PCTurbo
@@ -10,7 +11,7 @@ namespace PCTurbo
     // Atualizacao dentro do app: baixa a versao nova do GitHub, troca os arquivos e recompila.
     public static class Updater
     {
-        public const string Current = "1.9.1";
+        public const string Current = "1.9.2";
         private const string RawBase = "https://raw.githubusercontent.com/Luiz1x/PCTurbo/main/";
         private const string ZipUrl = "https://github.com/Luiz1x/PCTurbo/archive/refs/heads/main.zip";
 
@@ -28,13 +29,69 @@ namespace PCTurbo
             return wc;
         }
 
+        // Pacote da Release que o GitHub compilou e conferiu (null = nao achou Release)
+        private static string assetUrl;
+        private static string shaUrl;
+
         // Devolve a versao mais nova publicada, ou null se nao deu pra checar.
-        // Tenta a API do GitHub primeiro (quase sem cache) e depois o arquivo direto.
+        // Primeiro olha a ultima Release: ela so existe se o GitHub conseguiu compilar o codigo.
+        // So se o repositorio ainda nao tiver nenhuma Release usa o jeito antigo (arquivo version.txt).
         public static string LatestVersion()
         {
+            assetUrl = null;
+            shaUrl = null;
+            bool notFound;
+            string r = ReadRelease(out notFound);
+            if (r != null) return r;
+            if (!notFound) return null;
+
             string v = ReadVersion("https://api.github.com/repos/Luiz1x/PCTurbo/contents/version.txt?ref=main&t=" + DateTime.Now.Ticks, true);
             if (v == null) v = ReadVersion(RawBase + "version.txt?t=" + DateTime.Now.Ticks, false);
             return v;
+        }
+
+        private static string ReadRelease(out bool notFound)
+        {
+            notFound = false;
+            try
+            {
+                using (WebClient wc = NewClient())
+                {
+                    wc.Headers.Add("Accept", "application/vnd.github+json");
+                    wc.Headers.Add("Cache-Control", "no-cache");
+                    string json = wc.DownloadString("https://api.github.com/repos/Luiz1x/PCTurbo/releases/latest?t=" + DateTime.Now.Ticks);
+                    Match m = Regex.Match(json, "\"tag_name\"\\s*:\\s*\"v?([0-9.]+)\"");
+                    if (!m.Success) return null;
+                    string v = m.Groups[1].Value;
+                    System.Version tmp;
+                    if (!System.Version.TryParse(v, out tmp)) return null;
+                    Match a = Regex.Match(json, "\"browser_download_url\"\\s*:\\s*\"([^\"]*PCTurbo-fonte\\.zip)\"");
+                    Match h = Regex.Match(json, "\"browser_download_url\"\\s*:\\s*\"([^\"]*PCTurbo-fonte\\.zip\\.sha256)\"");
+                    if (!a.Success || !h.Success) return null;
+                    assetUrl = a.Groups[1].Value;
+                    shaUrl = h.Groups[1].Value;
+                    return v;
+                }
+            }
+            catch (WebException ex)
+            {
+                HttpWebResponse resp = ex.Response as HttpWebResponse;
+                if (resp != null && resp.StatusCode == HttpStatusCode.NotFound) notFound = true;
+                return null;
+            }
+            catch { return null; }
+        }
+
+        private static string Sha256(string path)
+        {
+            using (FileStream fs = File.OpenRead(path))
+            using (System.Security.Cryptography.SHA256 sha = System.Security.Cryptography.SHA256.Create())
+            {
+                byte[] b = sha.ComputeHash(fs);
+                StringBuilder sb = new StringBuilder();
+                foreach (byte x in b) sb.Append(x.ToString("x2"));
+                return sb.ToString();
+            }
         }
 
         private static string ReadVersion(string url, bool api)
@@ -69,12 +126,32 @@ namespace PCTurbo
             string zip = tmp + ".zip";
             try
             {
+                if (assetUrl == null) LatestVersion();
                 Log.Write("Baixando a versão nova...");
                 using (WebClient wc = NewClient())
                 {
-                    wc.DownloadFile(ZipUrl + "?t=" + DateTime.Now.Ticks, zip);
+                    wc.DownloadFile(assetUrl != null ? assetUrl : ZipUrl + "?t=" + DateTime.Now.Ticks, zip);
                 }
                 if (!File.Exists(zip) || new FileInfo(zip).Length < 1000) return "O download veio vazio.";
+
+                if (assetUrl != null && shaUrl != null)
+                {
+                    string want;
+                    using (WebClient wc2 = NewClient())
+                    {
+                        want = wc2.DownloadString(shaUrl).Trim().ToLowerInvariant();
+                    }
+                    string got = Sha256(zip);
+                    if (want.Length != 64 || got != want)
+                    {
+                        return "O arquivo baixado não bate com o SHA-256 publicado (corrompido ou alterado). Não instalei nada.";
+                    }
+                    Log.Write("Pacote conferido: o SHA-256 bate e a versão foi compilada pelo GitHub.");
+                }
+                else
+                {
+                    Log.Write("Aviso: ainda não existe Release, então baixei direto do repositório (sem conferência).");
+                }
 
                 Directory.CreateDirectory(tmp);
                 string script =

@@ -138,3 +138,6 @@ NOVIDADES DA 1.9.0
 
 NOVIDADES DA 1.9.1
 - Nova aba "Meu ganho": tela simples com quanto lixo o PC tinha, quanto foi removido, o que foi limpo, os ajustes aplicados e o que precisa de atencao. Mais abaixo, o antes e agora (programas, RAM, CPU). O botao Salvar relatorio gera o arquivo para enviar.
+
+NOVIDADES DA 1.9.2
+- Atualizacao mais segura: o GitHub agora compila o codigo sozinho a cada envio e so publica uma versao se ela compilar. O botao Atualizar baixa so essas versoes testadas e confere o SHA-256 do pacote antes de instalar. Se o pacote nao bater, nada e instalado.
