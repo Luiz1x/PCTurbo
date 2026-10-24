@@ -11,7 +11,7 @@ namespace PCTurbo
     // Atualizacao dentro do app: baixa a versao nova do GitHub, troca os arquivos e recompila.
     public static class Updater
     {
-        public const string Current = "1.9.3";
+        public const string Current = "2.0.0";
         private const string RawBase = "https://raw.githubusercontent.com/Luiz1x/PCTurbo/main/";
         private const string ZipUrl = "https://github.com/Luiz1x/PCTurbo/archive/refs/heads/main.zip";
 
@@ -60,16 +60,10 @@ namespace PCTurbo
                     wc.Headers.Add("Accept", "application/vnd.github+json");
                     wc.Headers.Add("Cache-Control", "no-cache");
                     string json = wc.DownloadString("https://api.github.com/repos/Luiz1x/PCTurbo/releases/latest?t=" + DateTime.Now.Ticks);
-                    Match m = Regex.Match(json, "\"tag_name\"\\s*:\\s*\"v?([0-9.]+)\"");
-                    if (!m.Success) return null;
-                    string v = m.Groups[1].Value;
-                    System.Version tmp;
-                    if (!System.Version.TryParse(v, out tmp)) return null;
-                    Match a = Regex.Match(json, "\"browser_download_url\"\\s*:\\s*\"([^\"]*PCTurbo-fonte\\.zip)\"");
-                    Match h = Regex.Match(json, "\"browser_download_url\"\\s*:\\s*\"([^\"]*PCTurbo-fonte\\.zip\\.sha256)\"");
-                    if (!a.Success || !h.Success) return null;
-                    assetUrl = a.Groups[1].Value;
-                    shaUrl = h.Groups[1].Value;
+                    string v, a, h;
+                    if (!ParseRelease(json, out v, out a, out h)) return null;
+                    assetUrl = a;
+                    shaUrl = h;
                     return v;
                 }
             }
@@ -80,6 +74,25 @@ namespace PCTurbo
                 return null;
             }
             catch { return null; }
+        }
+
+        // Le a resposta da API do GitHub (separado para poder ser testado no autoteste)
+        internal static bool ParseRelease(string json, out string ver, out string asset, out string sha)
+        {
+            ver = null;
+            asset = null;
+            sha = null;
+            Match m = Regex.Match(json, "\"tag_name\"\\s*:\\s*\"v?([0-9.]+)\"");
+            if (!m.Success) return false;
+            System.Version tmp;
+            if (!System.Version.TryParse(m.Groups[1].Value, out tmp)) return false;
+            Match a = Regex.Match(json, "\"browser_download_url\"\\s*:\\s*\"([^\"]*PCTurbo-fonte\\.zip)\"");
+            Match h = Regex.Match(json, "\"browser_download_url\"\\s*:\\s*\"([^\"]*PCTurbo-fonte\\.zip\\.sha256)\"");
+            if (!a.Success || !h.Success) return false;
+            ver = m.Groups[1].Value;
+            asset = a.Groups[1].Value;
+            sha = h.Groups[1].Value;
+            return true;
         }
 
         private static string Sha256(string path)
@@ -164,7 +177,7 @@ namespace PCTurbo
                     "if(Test-Path (Join-Path $dst 'src')){ Get-ChildItem (Join-Path $dst 'src') -Filter *.cs | Remove-Item -Force };" +
                     "New-Item -ItemType Directory -Force -Path (Join-Path $dst 'src') | Out-Null;" +
                     "Copy-Item (Join-Path $root 'src\\*.cs') (Join-Path $dst 'src') -Force;" +
-                    "foreach($f in 'COMPILAR.bat','INICIAR.bat','CORRIGIR_AVISO_CONTROLE.bat','LEIA-ME.txt','app.manifest','icone.ico','version.txt'){ " +
+                    "foreach($f in 'COMPILAR.bat','INICIAR.bat','LEIA-ME.txt','app.manifest','icone.ico','version.txt'){ " +
                     "if(Test-Path (Join-Path $root $f)){ Copy-Item (Join-Path $root $f) (Join-Path $dst $f) -Force } };" +
                     "Get-ChildItem (Join-Path $dst 'src') -Filter *.cs | ForEach-Object { $_.LastWriteTime = Get-Date };" +
                     "Write-Output 'ok'";

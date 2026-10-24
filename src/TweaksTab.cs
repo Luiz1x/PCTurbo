@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
 
@@ -27,9 +27,9 @@ namespace PCTurbo
 
             Button bApply = Ui.Btn("Aplicar marcados", 150, delegate { Run(true); });
             Button bRevert = Ui.Btn("Reverter marcados", 160, delegate { Run(false); });
-            Button bAll = Ui.Btn("Marcar todos", 120, delegate
+            Button bAll = Ui.Btn("Marcar os recomendados", 190, delegate
             {
-                foreach (ListViewItem it in lv.Items) it.Checked = true;
+                foreach (ListViewItem it in lv.Items) it.Checked = ((Tweak)it.Tag).Default;
             });
             Button bNone = Ui.Btn("Desmarcar todos", 130, delegate
             {

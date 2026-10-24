@@ -144,3 +144,13 @@ NOVIDADES DA 1.9.2
 
 NOVIDADES DA 1.9.3
 - Teste de FPS (opcional) na aba Meu ganho: mede FPS medio e 1% low do jogo por 30 a 180 s, antes e depois de otimizar, usando o PresentMon (ferramenta gratuita da Intel, baixada so se voce clicar em medir). Ele so le os quadros pelo Windows, nao injeta nada no jogo. O resultado entra no relatorio. Nunca roda sozinho.
+
+NOVIDADES DA 2.0.0
+- Vigia de programas: o OTIMIZAR TUDO tira uma foto (so leitura) de Epic, Steam, Riot, Discord, Chrome, driver NVIDIA e outros antes e depois. Se algum sumir ou voltar para uma versao mais antiga, avisa na hora.
+- "Ver o que vai mudar (sem aplicar)" no Painel: mostra tudo que o OTIMIZAR TUDO vai limpar e ajustar, sem mexer em nada.
+- Modo notebook: se o PC tem bateria, o app pula o plano de energia maximo e o ajuste de USB/PCIe, que gastam bateria.
+- Historico das ultimas 20 otimizacoes na aba Meu ganho.
+- Boas-vindas na primeira vez, explicando o que o app faz e o que nunca mexe.
+- Removido (era perigoso ou inutil): atualizar programas pelo winget, remover apps da Microsoft, aba Programas e o arquivo CORRIGIR_AVISO_CONTROLE.bat (o ajuste ja existe na aba Otimizacao). "Marcar todos" virou "Marcar os recomendados".
+- O arquivo de log na Area de Trabalho agora para de crescer (passou de 1,5 MB, guarda so o final).
+- Autoteste: o GitHub roda PCTurbo.exe /selftest a cada envio e so publica a versao se passar.

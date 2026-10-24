@@ -98,13 +98,13 @@ namespace PCTurbo
             dash.QuickAction = QuickOptimize;
             dash.UndoAction = UndoAll;
             dash.ReportAction = MakeReport;
+            dash.PreviewAction = Preview;
 
             AddTab("Painel", dash);
             AddTab("Meu ganho", new GainTab());
             AddTab("Limpeza", new CleanTab());
             AddTab("Otimização", new TweaksTab());
             AddTab("NVIDIA 3D", new NvidiaTab());
-            AddTab("Programas", new ProgramsTab());
             AddTab("Inicialização", new StartupTab());
             AddTab("Prioridades", new PriorityTab());
             AddTab("Manutenção", new MaintTab());
@@ -161,6 +161,16 @@ namespace PCTurbo
 
             this.Shown += delegate
             {
+                if (!Report.GetFlag("bem_vindo"))
+                {
+                    Report.SetFlag("bem_vindo");
+                    MessageBox.Show(
+                        "Bem-vindo ao PC Turbo!\n\n" +
+                        "É só clicar em OTIMIZAR TUDO (botão verde). Ele cria um ponto de restauração, limpa o lixo, aplica ajustes seguros e depois mostra o resultado na aba Meu ganho.\n\n" +
+                        "O que ele NUNCA mexe: Riot e Vanguard, Xbox e Game Pass, seus jogos, launchers (Epic, Steam e outros), seus arquivos e seus programas. Depois de otimizar, ele só confere se tudo continua igual.\n\n" +
+                        "Quer ver antes o que vai ser feito? No Painel, clique em \"Ver o que vai mudar\". E dá para desfazer os ajustes a qualquer hora.",
+                        "PC Turbo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
                 System.Threading.ThreadPool.QueueUserWorkItem(delegate(object o)
                 {
                     string latest = Updater.LatestVersion();
@@ -224,6 +234,63 @@ namespace PCTurbo
             content.Dock = DockStyle.Fill;
             page.Controls.Add(content);
             tabs.TabPages.Add(page);
+        }
+
+        private void Preview()
+        {
+            if (Ui.Busy)
+            {
+                MessageBox.Show("Já tem uma tarefa rodando. Espere terminar.", "PC Turbo");
+                return;
+            }
+            Ui.Background("Montando a prévia (nada é aplicado)", delegate
+            {
+                string text = PreviewText();
+                try { BeginInvoke(new Action(delegate { PreviewForm.ShowText(this, text); })); }
+                catch { }
+            });
+        }
+
+        private static string PreviewText()
+        {
+            System.Text.StringBuilder sb = new System.Text.StringBuilder();
+            bool laptop = Machine.IsLaptop();
+            sb.AppendLine("O QUE O OTIMIZAR TUDO VAI FAZER");
+            sb.AppendLine("(isto é só uma prévia: nada foi aplicado nem apagado)");
+            sb.AppendLine();
+            sb.AppendLine("1. Criar um ponto de restauração do Windows");
+            sb.AppendLine();
+            sb.AppendLine("2. Limpar este lixo:");
+            long total = 0;
+            foreach (CleanTarget t in Cleaner.Targets())
+            {
+                if (!t.Default) continue;
+                long sz = 0;
+                try { sz = t.Size(); }
+                catch { }
+                total += sz;
+                sb.AppendLine("   • " + t.Name + " - " + Fmt.Bytes(sz));
+            }
+            sb.AppendLine("   Total: " + Fmt.Bytes(total));
+            sb.AppendLine();
+            sb.AppendLine("3. Aplicar estes ajustes:");
+            foreach (Tweak tw in Tweaks.All())
+            {
+                if (!tw.Default) continue;
+                sb.AppendLine("   • " + tw.Name + (laptop && tw.DesktopOnly ? "   (pulado: notebook)" : ""));
+            }
+            sb.AppendLine();
+            sb.AppendLine("4. TRIM do SSD, limpar o cache de DNS, ligar a limpeza semanal e a limpeza em segundo plano (bandeja)");
+            sb.AppendLine("5. Configs de FPS da placa NVIDIA (se tiver NVIDIA)");
+            sb.AppendLine("6. Diagnóstico do PC e conferência dos programas abaixo (só leitura)");
+            sb.AppendLine();
+            sb.AppendLine("Programas que serão conferidos depois (nada é alterado neles):");
+            System.Collections.Generic.List<GuardItem> g = Guard.Snapshot();
+            if (g.Count == 0) sb.AppendLine("   • nenhum encontrado");
+            foreach (GuardItem gi in g) sb.AppendLine("   • " + gi.Name + (gi.Version.Length > 0 ? " (versão " + gi.Version + ")" : ""));
+            sb.AppendLine();
+            sb.AppendLine("O que NUNCA é mexido: Riot e Vanguard, Xbox e Game Pass, seus jogos e launchers, seus arquivos e seus programas.");
+            return sb.ToString();
         }
 
         private void MakeReport()
@@ -331,6 +398,9 @@ namespace PCTurbo
             Ui.Background("Limpeza e otimização completas", delegate
             {
                 Report.StartBaseline();
+                System.Collections.Generic.List<GuardItem> guardBefore = Guard.Snapshot();
+                bool laptop = Machine.IsLaptop();
+                if (laptop) Log.Write("Notebook detectado: vou pular os ajustes de energia que gastam bateria.");
                 Maint.RestorePoint("PC Turbo - antes da otimizacao");
 
                 System.Collections.Generic.List<string> cleanedList = new System.Collections.Generic.List<string>();
@@ -365,6 +435,11 @@ namespace PCTurbo
                 foreach (Tweak tw in Tweaks.All())
                 {
                     if (!tw.Default) continue;
+                    if (laptop && tw.DesktopOnly)
+                    {
+                        Log.Write("Notebook: pulei \"" + tw.Name + "\" para não gastar bateria.");
+                        continue;
+                    }
                     try
                     {
                         tw.Apply();
@@ -404,7 +479,16 @@ namespace PCTurbo
                 if (dg.PlanKnown && !dg.PlanOk) warnList.Add("Plano de energia: " + dg.Plan);
                 if (dg.DiskKnown && !dg.DiskOk) warnList.Add("Saúde do disco: " + dg.Disk);
                 if (dg.BootKnown && !dg.BootOk) warnList.Add("Secure Boot / TPM: " + dg.Boot);
-                Report.SaveRun(found, cleanedList, fixesList, warnList);
+                // confere se os programas continuam como estavam (so leitura)
+                System.Collections.Generic.List<GuardItem> guardAfter = Guard.Snapshot();
+                System.Collections.Generic.List<string> guardWarn = Guard.Compare(guardBefore, guardAfter);
+                foreach (string gw in guardWarn)
+                {
+                    warnList.Add(gw);
+                    Log.Write("ATENÇÃO: " + gw);
+                }
+                Log.Write("Programas conferidos: " + guardAfter.Count + " (Epic, Steam, Riot, Discord e outros). " + (guardWarn.Count == 0 ? "Tudo igual ao de antes." : guardWarn.Count + " aviso(s)."));
+                Report.SaveRun(found, total, cleanedList, fixesList, warnList);
 
                 if (full)
                 {
@@ -419,6 +503,7 @@ namespace PCTurbo
                     "\nLimpeza automática semanal e em segundo plano: ligadas" +
                     (full ? "\nManutenção completa (SFC e DISM): feita" : "") +
                     "\nNVIDIA: " + (nv == null ? "configs de FPS aplicadas" : "não aplicado") +
+                    "\nProgramas conferidos (Epic, Steam, Riot, Discord...): " + (guardWarn.Count == 0 ? "tudo igual ao de antes" : guardWarn.Count + " aviso(s), veja o quadro de baixo") +
                     "\n\nTela: " + dg.Refresh + "\nRAM: " + dg.Ram + "\nResizable BAR: " + dg.Bar + "\nSecure Boot / TPM: " + dg.Boot +
                     "\n\nPara tudo valer, o PC precisa reiniciar. Depois de reiniciar, clique em \"Gerar relatório de ganho\" no Painel para ver o antes e depois." +
                     "\n\nReiniciar agora?";
@@ -482,6 +567,11 @@ namespace PCTurbo
         [STAThread]
         static void Main(string[] args)
         {
+            if (args != null && args.Length > 0 && args[0].ToLowerInvariant() == "/selftest")
+            {
+                Environment.Exit(SelfTest.Run());
+                return;
+            }
             if (args != null && args.Length > 0 && args[0].ToLowerInvariant() == "/fundo")
             {
                 bool created;

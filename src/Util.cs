@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -16,6 +16,24 @@ namespace PCTurbo
     {
         public static Action<string> Sink;
         private static readonly object fileLock = new object();
+        private static int writes;
+
+        // Mantem o arquivo de log pequeno: passou de 1,5 MB, guarda so o final
+        private static void Trim(string path)
+        {
+            try
+            {
+                FileInfo fi = new FileInfo(path);
+                if (fi.Length < 1500000) return;
+                string all = File.ReadAllText(path, Encoding.UTF8);
+                int cut = all.Length - 500000;
+                if (cut < 0) return;
+                int nl = all.IndexOf('\n', cut);
+                if (nl < 0) return;
+                File.WriteAllText(path, "[log antigo cortado para o arquivo nao crescer demais]" + Environment.NewLine + all.Substring(nl + 1), Encoding.UTF8);
+            }
+            catch { }
+        }
 
         public static void Write(string msg)
         {
@@ -31,6 +49,8 @@ namespace PCTurbo
                 lock (fileLock)
                 {
                     File.AppendAllText(path, DateTime.Now.ToString("yyyy-MM-dd ") + line + Environment.NewLine, Encoding.UTF8);
+                    writes++;
+                    if (writes % 100 == 1) Trim(path);
                 }
             }
             catch { }

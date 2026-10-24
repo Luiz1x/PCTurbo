@@ -12,6 +12,7 @@ namespace PCTurbo
         public bool Default;
         public Action Apply;
         public Action Revert;   // null = nao ha o que reverter
+        public bool DesktopOnly; // true = o OTIMIZAR TUDO pula em notebook
     }
 
     public static class Tweaks
@@ -39,19 +40,6 @@ namespace PCTurbo
             "SubscribedContent-353696Enabled", "SubscribedContent-310093Enabled",
             "SystemPaneSuggestionsEnabled", "SoftLandingEnabled",
             "OemPreInstalledAppsEnabled", "PreInstalledAppsEnabled", "SilentInstalledAppsEnabled"
-        };
-
-        private static readonly string[] BloatApps =
-        {
-            "Microsoft.SkypeApp", "Microsoft.YourPhone", "Clipchamp.Clipchamp",
-            "Microsoft.BingNews", "Microsoft.BingWeather", "Microsoft.MixedReality.Portal",
-            "Microsoft.GetHelp", "Microsoft.Getstarted", "Microsoft.Microsoft3DViewer",
-            "Microsoft.MicrosoftOfficeHub", "Microsoft.MicrosoftSolitaireCollection",
-            "Microsoft.People", "Microsoft.PowerAutomateDesktop", "Microsoft.Todos",
-            "Microsoft.WindowsFeedbackHub", "Microsoft.WindowsMaps",
-            "Microsoft.549981C3F5F10",
-            "Microsoft.Windows.DevHome", "MicrosoftTeams", "MSTeams",
-            "king.com.CandyCrushSaga", "king.com.CandyCrushSodaSaga"
         };
 
         private static Tweak T(string name, string desc, bool def, Action apply, Action revert)
@@ -435,29 +423,11 @@ namespace PCTurbo
                 delegate { Proc.Run("powercfg.exe", "-h off", null); },
                 delegate { Proc.Run("powercfg.exe", "-h on", null); }));
 
-            // 13. Apps inuteis
-            list.Add(T("Remover apps inúteis da Microsoft",
-                "Skype, Phone Link, Solitaire, Notícias, Clima, Mapas, Teams e outros. DESMARCADO por padrão: só marque se quiser. O Xbox, o Game Bar e o Game Pass nunca são removidos.",
-                false,
-                delegate
-                {
-                    StringBuilder sb = new StringBuilder();
-                    sb.Append("$apps=@(");
-                    for (int i = 0; i < BloatApps.Length; i++)
-                    {
-                        sb.Append("'" + BloatApps[i] + "'");
-                        if (i < BloatApps.Length - 1) sb.Append(",");
-                    }
-                    sb.Append(");");
-                    sb.Append("foreach($a in $apps){");
-                    sb.Append("$pk=@(Get-AppxPackage -Name $a -AllUsers); $pv=@(Get-AppxProvisionedPackage -Online | Where-Object { $_.DisplayName -eq $a });");
-                    sb.Append("if($pk.Count -eq 0 -and $pv.Count -eq 0){ Write-Output ('Nao estava instalado: ' + $a); continue };");
-                    sb.Append("foreach($p in $pk){ try { Remove-AppxPackage -Package $p.PackageFullName -AllUsers -ErrorAction Stop; Write-Output ('Removido: ' + $a) } catch { Write-Output ('Nao consegui remover: ' + $a) } };");
-                    sb.Append("foreach($p in $pv){ try { Remove-AppxProvisionedPackage -Online -PackageName $p.PackageName -ErrorAction Stop | Out-Null } catch {} }");
-                    sb.Append("}");
-                    Proc.PowerShell(sb.ToString(), Log.Write);
-                },
-                null));
+            // Ajustes de energia que so fazem sentido em PC de mesa (em notebook gastam bateria)
+            foreach (Tweak tw in list)
+            {
+                if (tw.Name.StartsWith("Plano de energia") || tw.Name.StartsWith("USB e PCIe")) tw.DesktopOnly = true;
+            }
 
             return list;
         }

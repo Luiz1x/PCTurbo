@@ -29,6 +29,7 @@ namespace PCTurbo
         public Action QuickAction;
         public Action UndoAction;
         public Action ReportAction;
+        public Action PreviewAction;
         public CheckBox ChkFull;
 
         public DashTab()
@@ -114,7 +115,11 @@ namespace PCTurbo
             {
                 if (ReportAction != null) ReportAction();
             });
-            FlowLayoutPanel repButtons = Ui.Buttons(bRep);
+            Button bPrev = Ui.Btn("Ver o que vai mudar (sem aplicar)", 280, delegate
+            {
+                if (PreviewAction != null) PreviewAction();
+            });
+            FlowLayoutPanel repButtons = Ui.Buttons(bPrev, bRep);
             repButtons.WrapContents = false;
             repButtons.AutoSize = true;
             flow.Controls.Add(repButtons);

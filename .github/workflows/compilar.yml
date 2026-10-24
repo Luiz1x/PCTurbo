@@ -26,6 +26,15 @@ jobs:
           if ($LASTEXITCODE -ne 0) { Write-Host "ERRO: nao compilou com NVAPI"; exit 1 }
           Write-Host "Compilou (NVAPI)."
 
+      - name: Autoteste (PCTurbo.exe /selftest)
+        shell: powershell
+        run: |
+          if (Test-Path selftest.txt) { Remove-Item selftest.txt }
+          $p = Start-Process -FilePath .\PCTurbo.exe -ArgumentList '/selftest' -Wait -PassThru
+          if (Test-Path selftest.txt) { Get-Content selftest.txt } else { Write-Host "O autoteste nao gerou selftest.txt" }
+          if ($p.ExitCode -ne 0) { Write-Host "ERRO: o autoteste falhou (codigo $($p.ExitCode))"; exit 1 }
+          Remove-Item selftest.txt -Force
+
       - name: Compilar sem o modulo NVIDIA (conferencia)
         shell: powershell
         run: |
@@ -55,7 +64,7 @@ jobs:
           gh release view $tag *> $null
           if ($LASTEXITCODE -eq 0) { Write-Host "A Release $tag ja existe. Nada a publicar."; exit 0 }
 
-          $files = @('COMPILAR.bat','INICIAR.bat','CORRIGIR_AVISO_CONTROLE.bat','LEIA-ME.txt','app.manifest','icone.ico','version.txt')
+          $files = @('COMPILAR.bat','INICIAR.bat','LEIA-ME.txt','app.manifest','icone.ico','version.txt')
 
           # 1) pacote so com o codigo (o atualizador do app baixa este e compila no PC do usuario)
           New-Item -ItemType Directory -Force -Path stage1\PCTurbo\src | Out-Null

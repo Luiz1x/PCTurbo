@@ -165,7 +165,7 @@ namespace PCTurbo
             }
 
             string err;
-            FpsResult r = Parse(csv, proc, secs, out err);
+            FpsResult r = ParseCsv(csv, proc, secs, out err);
             try { File.Delete(csv); } catch { }
             if (r == null) return err;
             res = r;
@@ -178,7 +178,7 @@ namespace PCTurbo
             return s.Length > 220 ? s.Substring(0, 220) + "..." : s;
         }
 
-        private static FpsResult Parse(string csv, string proc, int secs, out string err)
+        internal static FpsResult ParseCsv(string csv, string proc, int secs, out string err)
         {
             err = null;
             List<double> ms = new List<double>();

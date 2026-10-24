@@ -21,6 +21,7 @@ namespace PCTurbo
         private TextBox txtCleaned;
         private TextBox txtFixes;
         private TextBox txtWarns;
+        private TextBox txtHist;
         private Button btnRefresh;
         private bool loadedOnce;
         private ComboBox cmbProc;
@@ -110,6 +111,10 @@ namespace PCTurbo
             lblRuns.Height = 26;
             lblRuns.Text = "-";
             flow.Controls.Add(lblRuns);
+
+            flow.Controls.Add(Section("Histórico das otimizações"));
+            txtHist = Box(100);
+            flow.Controls.Add(txtHist);
 
             Label note = new Label();
             note.Width = 900;
@@ -442,6 +447,24 @@ namespace PCTurbo
             return (mb / 1024.0).ToString("0.0") + " GB";
         }
 
+        private void ShowHistory()
+        {
+            System.Collections.Generic.List<Report.RunRec> h = Report.History();
+            if (h.Count == 0)
+            {
+                txtHist.Text = "Nenhuma otimização registrada ainda.";
+                return;
+            }
+            System.Text.StringBuilder sb = new System.Text.StringBuilder();
+            for (int i = h.Count - 1; i >= 0; i--)
+            {
+                Report.RunRec r = h[i];
+                sb.Append("• " + r.When + " - tinha " + Fmt.Bytes(r.Found) + " de lixo, removeu " + Fmt.Bytes(r.Removed) + ", " + r.Fixes + " ajustes, " +
+                    (r.Warns == 0 ? "sem avisos" : r.Warns + " aviso(s)") + "\r\n");
+            }
+            txtHist.Text = sb.ToString();
+        }
+
         private void Set(int i, string b, string n, string c, int better)
         {
             before[i].Text = b;
@@ -457,6 +480,7 @@ namespace PCTurbo
         {
             btnRefresh.Enabled = true;
             if (!fpsBusy) lblFps.Text = StoredFpsText();
+            ShowHistory();
             if (hasRun)
             {
                 lblWhen.Text = "Feita em " + when;

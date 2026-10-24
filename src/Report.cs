@@ -182,7 +182,7 @@ namespace PCTurbo
         }
 
         // Guarda o resumo da ultima otimizacao: lixo que tinha, o que foi limpo, o que foi corrigido, avisos
-        public static void SaveRun(long found, List<string> cleaned, List<string> fixes, List<string> warns)
+        public static void SaveRun(long found, long removed, List<string> cleaned, List<string> fixes, List<string> warns)
         {
             try
             {
@@ -202,6 +202,20 @@ namespace PCTurbo
                     PutList(d, "ult_l_", cleaned);
                     PutList(d, "ult_f_", fixes);
                     PutList(d, "ult_w_", warns);
+                    d["ult_removido"] = N(removed);
+
+                    // historico: guarda as ultimas 20 execucoes (uma linha cada, separada por |)
+                    List<string> hist = GetList(d, "hist_");
+                    hist.Add(DateTime.Now.ToString("dd/MM/yyyy HH:mm") + "|" + N(found) + "|" + N(removed) + "|" +
+                        (fixes == null ? 0 : fixes.Count) + "|" + (warns == null ? 0 : warns.Count));
+                    while (hist.Count > 20) hist.RemoveAt(0);
+                    List<string> oldHist = new List<string>();
+                    foreach (string k in d.Keys)
+                    {
+                        if (k.StartsWith("hist_")) oldHist.Add(k);
+                    }
+                    foreach (string k in oldHist) d.Remove(k);
+                    PutList(d, "hist_", hist);
                     Save(d);
                 }
             }
@@ -291,6 +305,63 @@ namespace PCTurbo
         {
             return N(Math.Round(r.Avg, 1)) + " FPS médio   |   1% low: " + N(Math.Round(r.Low1, 1)) + "   |   0,1% low: " + N(Math.Round(r.Low01, 1)) +
                 "   (" + r.Proc + ", " + r.Secs + " s, " + r.Frames + " quadros, " + r.When + ")";
+        }
+
+        // Execucoes anteriores: data, lixo achado, lixo removido, ajustes, avisos
+        public class RunRec
+        {
+            public string When = "";
+            public long Found;
+            public long Removed;
+            public int Fixes;
+            public int Warns;
+        }
+
+        public static List<RunRec> History()
+        {
+            List<RunRec> r = new List<RunRec>();
+            lock (fileLock)
+            {
+                Dictionary<string, string> d = Load();
+                foreach (string line in GetList(d, "hist_"))
+                {
+                    string[] p = line.Split('|');
+                    if (p.Length < 5) continue;
+                    RunRec x = new RunRec();
+                    x.When = p[0];
+                    double v;
+                    if (double.TryParse(p[1], NumberStyles.Float, CultureInfo.InvariantCulture, out v)) x.Found = (long)v;
+                    if (double.TryParse(p[2], NumberStyles.Float, CultureInfo.InvariantCulture, out v)) x.Removed = (long)v;
+                    int n;
+                    if (int.TryParse(p[3], out n)) x.Fixes = n;
+                    if (int.TryParse(p[4], out n)) x.Warns = n;
+                    r.Add(x);
+                }
+            }
+            return r;
+        }
+
+        // Marcas simples (ex.: "ja mostrei as boas-vindas")
+        public static bool GetFlag(string key)
+        {
+            lock (fileLock)
+            {
+                return ReadNum(Load(), "flag_" + key, 0) > 0;
+            }
+        }
+
+        public static void SetFlag(string key)
+        {
+            try
+            {
+                lock (fileLock)
+                {
+                    Dictionary<string, string> d = Load();
+                    d["flag_" + key] = "1";
+                    Save(d);
+                }
+            }
+            catch { }
         }
 
         // Para a aba "Meu ganho": o "antes" guardado (ou null) e os totais
