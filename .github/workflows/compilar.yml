@@ -1,0 +1,84 @@
+name: Compilar e publicar
+
+# A cada envio para o main: compila o app com o MESMO compilador que o Windows dos usuarios tem
+# (csc do .NET Framework 4). Se nao compilar, o envio fica vermelho e NENHUMA versao e publicada.
+# Se compilar e a versao (version.txt) for nova, cria a Release que o atualizador do app baixa.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compilar com o modulo NVIDIA
+        shell: powershell
+        run: |
+          $csc = "$env:WINDIR\Microsoft.NET\Framework64\v4.0.30319\csc.exe"
+          & $csc /nologo /target:winexe /platform:x64 /optimize+ /codepage:65001 /define:NVAPI /out:PCTurbo.exe /win32manifest:app.manifest /win32icon:icone.ico /reference:System.Windows.Forms.dll /reference:System.Drawing.dll src\*.cs
+          if ($LASTEXITCODE -ne 0) { Write-Host "ERRO: nao compilou com NVAPI"; exit 1 }
+          Write-Host "Compilou (NVAPI)."
+
+      - name: Compilar sem o modulo NVIDIA (conferencia)
+        shell: powershell
+        run: |
+          $csc = "$env:WINDIR\Microsoft.NET\Framework64\v4.0.30319\csc.exe"
+          & $csc /nologo /target:winexe /platform:x64 /optimize+ /codepage:65001 /out:PCTurbo_semnvidia.exe /win32manifest:app.manifest /win32icon:icone.ico /reference:System.Windows.Forms.dll /reference:System.Drawing.dll src\*.cs
+          if ($LASTEXITCODE -ne 0) { Write-Host "ERRO: nao compilou sem NVAPI"; exit 1 }
+          Write-Host "Compilou (sem NVAPI)."
+          Remove-Item PCTurbo_semnvidia.exe -Force
+
+      - name: Conferir se a versao do codigo bate com version.txt
+        shell: powershell
+        run: |
+          $ver = (Get-Content version.txt -Raw).Trim()
+          $line = Select-String -Path src\Updater.cs -Pattern 'Current = "([0-9.]+)"'
+          $code = $line.Matches[0].Groups[1].Value
+          Write-Host "version.txt=$ver  Updater.Current=$code"
+          if ($ver -ne $code) { Write-Host "ERRO: versoes diferentes"; exit 1 }
+
+      - name: Criar a Release (so se a versao for nova)
+        shell: powershell
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = 'Continue'
+          $ver = (Get-Content version.txt -Raw).Trim()
+          $tag = "v$ver"
+          gh release view $tag *> $null
+          if ($LASTEXITCODE -eq 0) { Write-Host "A Release $tag ja existe. Nada a publicar."; exit 0 }
+
+          $files = @('COMPILAR.bat','INICIAR.bat','CORRIGIR_AVISO_CONTROLE.bat','LEIA-ME.txt','app.manifest','icone.ico','version.txt')
+
+          # 1) pacote so com o codigo (o atualizador do app baixa este e compila no PC do usuario)
+          New-Item -ItemType Directory -Force -Path stage1\PCTurbo\src | Out-Null
+          Copy-Item src\*.cs stage1\PCTurbo\src
+          foreach ($f in $files) { if (Test-Path $f) { Copy-Item $f stage1\PCTurbo } }
+          tar -a -c -f PCTurbo-fonte.zip -C stage1 PCTurbo
+          if ($LASTEXITCODE -ne 0) { Write-Host "ERRO ao criar o pacote fonte"; exit 1 }
+
+          # 2) pacote completo, ja com o PCTurbo.exe pronto (para quem baixa pela primeira vez)
+          New-Item -ItemType Directory -Force -Path stage2\PCTurbo\src | Out-Null
+          Copy-Item src\*.cs stage2\PCTurbo\src
+          foreach ($f in $files) { if (Test-Path $f) { Copy-Item $f stage2\PCTurbo } }
+          Copy-Item PCTurbo.exe stage2\PCTurbo
+          tar -a -c -f PCTurbo-completo.zip -C stage2 PCTurbo
+          if ($LASTEXITCODE -ne 0) { Write-Host "ERRO ao criar o pacote completo"; exit 1 }
+
+          $h1 = (Get-FileHash PCTurbo-fonte.zip -Algorithm SHA256).Hash.ToLower()
+          [System.IO.File]::WriteAllText("$PWD\PCTurbo-fonte.zip.sha256", $h1)
+          $h2 = (Get-FileHash PCTurbo-completo.zip -Algorithm SHA256).Hash.ToLower()
+          Write-Host "fonte=$h1"
+          Write-Host "completo=$h2"
+
+          $notes = "Versao $ver compilada e conferida automaticamente (com e sem o modulo NVIDIA). SHA-256 do pacote fonte: $h1"
+          gh release create $tag PCTurbo-fonte.zip PCTurbo-fonte.zip.sha256 PCTurbo-completo.zip --title "PC Turbo $ver" --notes $notes --target ${{ github.sha }}
+          if ($LASTEXITCODE -ne 0) { Write-Host "ERRO ao criar a Release"; exit 1 }
+          Write-Host "Release $tag publicada."
