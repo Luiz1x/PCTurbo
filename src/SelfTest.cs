@@ -43,6 +43,7 @@ namespace PCTurbo
                 Vigia();
                 Ajustes();
                 Protecao();
+                Config();
             }
             catch (Exception ex)
             {
@@ -146,7 +147,6 @@ namespace PCTurbo
 
             Check("Vigia: foto do PC nao quebra", Guard.Snapshot() != null);
             Check("Notebook: leitura nao quebra", Machine.IsLaptop() || true);
-            Check("TESTE DE FALHA PROPOSITAL", false);
         }
 
         private static void Ajustes()
@@ -178,6 +178,23 @@ namespace PCTurbo
                 if (c.Name == "Lixeira") hasBin = true;
             }
             Check("Limpeza: lixeira na lista", hasBin);
+        }
+
+        private static void Config()
+        {
+            Check("Config: tira .exe e espacos", Settings.Clean("  Game.EXE ") == "Game");
+            List<string> l = new List<string>();
+            l.Add("Valorant");
+            Check("Config: compara sem ligar para maiusculas", Settings.Has(l, "VALORANT") && !Settings.Has(l, "outro"));
+
+            string f = "selftest_" + DateTime.Now.Ticks + ".txt";
+            string[] def = { "A", "B.exe", "a" };
+            List<string> r1 = Settings.ReadList(f, def);
+            Check("Config: padrao sem repetir (A, B)", r1.Count == 2 && r1[1] == "B");
+            Settings.WriteList(f, new List<string>());
+            Check("Config: lista vazia salva nao volta ao padrao", Settings.ReadList(f, def).Count == 0);
+            try { File.Delete(Path.Combine(Settings.Dir(), f)); } catch { }
+            Check("Config: jogos padrao tem Valorant", Settings.Has(new List<string>(Settings.DefaultGames), "VALORANT-Win64-Shipping"));
         }
 
         private static void Protecao()

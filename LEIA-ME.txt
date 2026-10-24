@@ -154,3 +154,7 @@ NOVIDADES DA 2.0.0
 - Removido (era perigoso ou inutil): atualizar programas pelo winget, remover apps da Microsoft, aba Programas e o arquivo CORRIGIR_AVISO_CONTROLE.bat (o ajuste ja existe na aba Otimizacao). "Marcar todos" virou "Marcar os recomendados".
 - O arquivo de log na Area de Trabalho agora para de crescer (passou de 1,5 MB, guarda so o final).
 - Autoteste: o GitHub roda PCTurbo.exe /selftest a cada envio e so publica a versao se passar.
+
+NOVIDADES DA 2.1.0
+- Nova aba Jogos. Modo Jogo automatico: quando um jogo da lista abre (Valorant, League of Legends, Rocket League, GTA V, Fortnite, CS2, Roblox), o icone da bandeja deixa o equilibrio de CPU mais atento (programas em segundo plano acima de 5% do processador passam para prioridade baixa) e a limpeza automatica espera. Quando o jogo fecha, tudo volta ao normal. Voce edita a lista de jogos.
+- Sua lista de programas protegidos: o que voce colocar la nunca tem a prioridade mexida e nao entra em regras da aba Prioridades.

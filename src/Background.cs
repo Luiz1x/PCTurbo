@@ -32,6 +32,8 @@ namespace PCTurbo
         private Balancer balancer = new Balancer();
         private System.Windows.Forms.Timer balanceTimer;
         private System.Windows.Forms.Timer ruleTimer;
+        private System.Windows.Forms.Timer gameTimer;
+        private string runningGame;
 
         public TrayApp()
         {
@@ -71,7 +73,55 @@ namespace PCTurbo
             ruleTimer.Tick += delegate { try { PriorityRules.ApplyAll(); } catch { } };
             ruleTimer.Start();
 
+            gameTimer = new System.Windows.Forms.Timer();
+            gameTimer.Interval = 5000;
+            gameTimer.Tick += delegate { try { GameTick(); } catch { } };
+            gameTimer.Start();
+
             Log.Write("Limpeza automática em segundo plano iniciada.");
+        }
+
+        // Modo Jogo automatico: percebe quando um jogo da lista abre e fecha
+        private void GameTick()
+        {
+            if (!Settings.GetBool("jogo_auto", true))
+            {
+                if (runningGame != null)
+                {
+                    runningGame = null;
+                    balancer.GameMode = false;
+                    balancer.RestoreAll();
+                    icon.Text = "PC Turbo: limpeza automática ligada";
+                }
+                return;
+            }
+
+            string found = null;
+            foreach (string g in Settings.ReadList("jogos.txt", Settings.DefaultGames))
+            {
+                Process[] ps = Process.GetProcessesByName(g);
+                bool any = ps.Length > 0;
+                foreach (Process p in ps) p.Dispose();
+                if (any) { found = g; break; }
+            }
+
+            if (found != null && runningGame == null)
+            {
+                runningGame = found;
+                balancer.GameMode = true;
+                Log.Write("Modo Jogo automático ligado: " + found + " está aberto.");
+                icon.Text = "PC Turbo: Modo Jogo automático ligado";
+                try { icon.ShowBalloonTip(3000, "PC Turbo", "Modo Jogo automático ligado (" + found + ")", ToolTipIcon.Info); }
+                catch { }
+            }
+            else if (found == null && runningGame != null)
+            {
+                Log.Write("Modo Jogo automático desligado: " + runningGame + " fechou.");
+                runningGame = null;
+                balancer.GameMode = false;
+                balancer.RestoreAll();
+                icon.Text = "PC Turbo: limpeza automática ligada";
+            }
         }
 
         private void OpenMain()
@@ -83,6 +133,7 @@ namespace PCTurbo
         private void Quit()
         {
             timer.Stop();
+            gameTimer.Stop();
             balanceTimer.Stop();
             ruleTimer.Stop();
             balancer.RestoreAll();
@@ -111,7 +162,7 @@ namespace PCTurbo
             if (working) return;
             if (!force)
             {
-                if (GameOrFullscreen()) return;
+                if (GameOrFullscreen() || runningGame != null) return;
                 if ((DateTime.Now - lastClean).TotalMinutes < CooldownMinutes) return;
             }
             working = true;
@@ -185,10 +236,27 @@ namespace PCTurbo
             "^(system|idle|registry|memcompression|smss|csrss|wininit|winlogon|services|lsass|svchost|dwm|explorer|fontdrvhost|audiodg|sihost|taskhostw|ctfmon|searchhost|searchindexer|startmenuexperiencehost|shellexperiencehost|textinputhost|runtimebroker|securityhealth.*|msmpeng|nissrv|nvcontainer|nvdisplay.*|nvidia.*|nvspcap.*|nvtelemetry.*|vgc|vgtray|riot.*|valorant.*|league.*|easyanticheat.*|beservice|battleye.*|xbox.*|gamebar.*|gamingservices.*|steam.*|epicgames.*|epicwebhelper|discord.*|obs.*|pcturbo|msedgewebview2|attack.*|havit.*|conhost|wudfhost|dllhost|lsaiso|spoolsv)$",
             RegexOptions.IgnoreCase);
 
+        // Lista de protegidos do usuario (aba Jogos), relida a cada 15 segundos
+        private static DateTime userLoaded = DateTime.MinValue;
+        private static List<string> userList = new List<string>();
+
         public static bool IsProtected(string name)
         {
-            return Protected.IsMatch(name);
+            if (Protected.IsMatch(name)) return true;
+            if ((DateTime.Now - userLoaded).TotalSeconds > 15)
+            {
+                userList = Settings.ReadList("protegidos.txt", null);
+                userLoaded = DateTime.Now;
+            }
+            return Settings.Has(userList, Settings.Clean(name));
         }
+
+        // Com jogo aberto o equilibrio fica mais atento (limites menores)
+        public bool GameMode;
+        private int HighNow { get { return GameMode ? 50 : HighPercent; } }
+        private int LowNow { get { return GameMode ? 35 : LowPercent; } }
+        private double HogNow { get { return GameMode ? 5.0 : HogShare; } }
+        private int TicksNow { get { return GameMode ? 2 : 3; } }
 
         [DllImport("user32.dll")]
         private static extern IntPtr GetForegroundWindow();
@@ -245,11 +313,11 @@ namespace PCTurbo
             // Se um programa baixado voltou para a frente, devolve a prioridade na hora
             if (lowered.Count > 0 && lowered.ContainsKey(fg)) RestoreOne(fg);
 
-            if (cpu >= HighPercent) { highTicks++; lowTicks = 0; }
-            else if (cpu <= LowPercent) { lowTicks++; highTicks = 0; }
+            if (cpu >= HighNow) { highTicks++; lowTicks = 0; }
+            else if (cpu <= LowNow) { lowTicks++; highTicks = 0; }
             else { highTicks = 0; }
 
-            if (highTicks >= 3) LowerHogs(fg);
+            if (highTicks >= TicksNow) LowerHogs(fg);
             else if (highTicks == 0 && lastCpu.Count > 0) lastCpu.Clear();
 
             if (lowTicks >= 5 && lowered.Count > 0) RestoreAll();
@@ -270,7 +338,7 @@ namespace PCTurbo
                 {
                     int pid = p.Id;
                     if (pid == me || pid == fg || p.SessionId == 0) continue;
-                    if (Protected.IsMatch(p.ProcessName)) continue;
+                    if (IsProtected(p.ProcessName)) continue;
                     if (rules.ContainsKey(p.ProcessName.ToLowerInvariant())) continue;
 
                     TimeSpan t = p.TotalProcessorTime;
@@ -280,7 +348,7 @@ namespace PCTurbo
                     if (dt > 0.5 && lastCpu.TryGetValue(pid, out before) && !lowered.ContainsKey(pid))
                     {
                         double share = (t - before).TotalSeconds / (dt * Environment.ProcessorCount) * 100.0;
-                        if (share >= HogShare && p.PriorityClass == ProcessPriorityClass.Normal)
+                        if (share >= HogNow && p.PriorityClass == ProcessPriorityClass.Normal)
                         {
                             p.PriorityClass = ProcessPriorityClass.BelowNormal;
                             lowered[pid] = ProcessPriorityClass.Normal;

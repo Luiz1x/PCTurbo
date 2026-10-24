@@ -106,6 +106,7 @@ namespace PCTurbo
             AddTab("Otimização", new TweaksTab());
             AddTab("NVIDIA 3D", new NvidiaTab());
             AddTab("Inicialização", new StartupTab());
+            AddTab("Jogos", new GamesTab());
             AddTab("Prioridades", new PriorityTab());
             AddTab("Manutenção", new MaintTab());
 
