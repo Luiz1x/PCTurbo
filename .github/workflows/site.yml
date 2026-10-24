@@ -1,0 +1,82 @@
+name: Site
+
+# Monta o site (Next.js, exportacao estatica) e publica no GitHub Pages.
+# Tambem tira capturas de tela e guarda na branch "preview-site" para conferir o visual.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'site/**'
+      - 'version.txt'
+      - '.github/workflows/site.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Instalar dependencias
+        working-directory: site
+        run: npm install --no-audit --no-fund
+
+      - name: Montar o site
+        working-directory: site
+        run: npm run build
+
+      - name: Capturas de tela para conferir o visual
+        working-directory: site
+        run: |
+          mkdir -p ../serve/PCTurbo
+          cp -r out/* ../serve/PCTurbo/
+          (cd ../serve && nohup python3 -m http.server 3000 > /dev/null 2>&1 &)
+          sleep 2
+          npm install --no-save --no-audit --no-fund playwright@1.49.1
+          npx playwright install --with-deps chromium
+          node scripts/shots.mjs
+
+      - name: Guardar as capturas na branch preview-site
+        run: |
+          cd shots
+          git init -q
+          git checkout -q -b preview-site
+          git config user.name "github-actions"
+          git config user.email "actions@users.noreply.github.com"
+          git add .
+          git commit -q -m "capturas do site"
+          git push -q --force "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" preview-site
+
+      - name: Preparar o Pages
+        uses: actions/configure-pages@v5
+        continue-on-error: true
+
+      - name: Enviar o site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site/out
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Publicar no GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
