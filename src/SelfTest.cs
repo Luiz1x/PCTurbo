@@ -146,6 +146,7 @@ namespace PCTurbo
 
             Check("Vigia: foto do PC nao quebra", Guard.Snapshot() != null);
             Check("Notebook: leitura nao quebra", Machine.IsLaptop() || true);
+            Check("TESTE DE FALHA PROPOSITAL", false);
         }
 
         private static void Ajustes()
