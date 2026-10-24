@@ -201,7 +201,35 @@ namespace PCTurbo
                     catch { }
                 });
             });
-            FlowLayoutPanel buttons = Ui.Buttons(btnRefresh, btnFile);
+            Button btnCard = Ui.Btn("Gerar cartão de resultado (imagem)", 280, delegate
+            {
+                if (busy) return;
+                busy = true;
+                ThreadPool.QueueUserWorkItem(delegate(object state)
+                {
+                    string path = null;
+                    string error = null;
+                    try { path = Card.Make(); }
+                    catch (Exception ex) { error = ex.Message; }
+                    busy = false;
+                    try
+                    {
+                        BeginInvoke(new Action(delegate
+                        {
+                            if (error != null)
+                            {
+                                MessageBox.Show("Não consegui gerar a imagem: " + error, "PC Turbo");
+                                return;
+                            }
+                            MessageBox.Show("Salvei a imagem PCTurbo_resultado.png na Área de Trabalho. É só mandar para os seus amigos.", "PC Turbo");
+                            try { System.Diagnostics.Process.Start("explorer.exe", "/select,\"" + path + "\""); }
+                            catch { }
+                        }));
+                    }
+                    catch { }
+                });
+            });
+            FlowLayoutPanel buttons = Ui.Buttons(btnRefresh, btnFile, btnCard);
             buttons.WrapContents = false;
             buttons.AutoSize = true;
             flow.Controls.Add(buttons);
@@ -455,11 +483,18 @@ namespace PCTurbo
                 txtHist.Text = "Nenhuma otimização registrada ainda.";
                 return;
             }
+            long max = 1;
+            foreach (Report.RunRec x in h)
+            {
+                if (x.Removed > max) max = x.Removed;
+            }
             System.Text.StringBuilder sb = new System.Text.StringBuilder();
             for (int i = h.Count - 1; i >= 0; i--)
             {
                 Report.RunRec r = h[i];
-                sb.Append("• " + r.When + " - tinha " + Fmt.Bytes(r.Found) + " de lixo, removeu " + Fmt.Bytes(r.Removed) + ", " + r.Fixes + " ajustes, " +
+                int n = (int)(r.Removed * 16 / max);
+                if (r.Removed > 0 && n < 1) n = 1;
+                sb.Append("• " + r.When + "  " + new string('█', n).PadRight(16, '·') + "  tinha " + Fmt.Bytes(r.Found) + " de lixo, removeu " + Fmt.Bytes(r.Removed) + ", " + r.Fixes + " ajustes, " +
                     (r.Warns == 0 ? "sem avisos" : r.Warns + " aviso(s)") + "\r\n");
             }
             txtHist.Text = sb.ToString();

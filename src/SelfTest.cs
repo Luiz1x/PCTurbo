@@ -44,6 +44,7 @@ namespace PCTurbo
                 Ajustes();
                 Protecao();
                 Config();
+                Imagem();
             }
             catch (Exception ex)
             {
@@ -178,6 +179,37 @@ namespace PCTurbo
                 if (c.Name == "Lixeira") hasBin = true;
             }
             Check("Limpeza: lixeira na lista", hasBin);
+        }
+
+        private static void Imagem()
+        {
+            string tmp = Path.Combine(Path.GetTempPath(), "pcturbo_selftest_" + DateTime.Now.Ticks + ".png");
+            try
+            {
+                CardData d = new CardData();
+                d.Hardware = "CPU de teste  •  GPU de teste  •  16 GB de RAM";
+                d.Footer = "teste";
+                for (int i = 0; i < 6; i++)
+                {
+                    CardTile t = new CardTile();
+                    t.Label = "Bloco " + i;
+                    t.Value = (i * 111) + " MB";
+                    t.Sub = "antes: 1 (-1)";
+                    t.Better = (i % 3) - 1;
+                    d.Tiles.Add(t);
+                }
+                Card.Draw(d, tmp);
+                Check("Cartao: imagem criada", File.Exists(tmp) && new FileInfo(tmp).Length > 5000);
+                using (System.Drawing.Image img = System.Drawing.Image.FromFile(tmp))
+                {
+                    Check("Cartao: tamanho 1200x675", img.Width == Card.Width && img.Height == Card.Height);
+                }
+            }
+            finally
+            {
+                try { File.Delete(tmp); } catch { }
+            }
+            Check("Hardware: nomes nao quebram", Report.Cpu() != null && Report.Gpu() != null);
         }
 
         private static void Config()

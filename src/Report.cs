@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Text;
+using System.Text.RegularExpressions;
 using Microsoft.Win32;
 
 namespace PCTurbo
@@ -464,7 +465,13 @@ namespace PCTurbo
             return name + (ver.Length > 0 ? " " + ver : "") + (build.Length > 0 ? " (build " + build + ")" : "");
         }
 
-        private static string Gpu()
+        internal static string Cpu()
+        {
+            string c = Reg(@"HKEY_LOCAL_MACHINE\HARDWARE\DESCRIPTION\System\CentralProcessor\0", "ProcessorNameString");
+            return c.Length > 0 ? Regex.Replace(c, "\\s+", " ") : "processador não identificado";
+        }
+
+        internal static string Gpu()
         {
             string baseKey = @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}\";
             string found = "";
