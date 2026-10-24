@@ -141,3 +141,6 @@ NOVIDADES DA 1.9.1
 
 NOVIDADES DA 1.9.2
 - Atualizacao mais segura: o GitHub agora compila o codigo sozinho a cada envio e so publica uma versao se ela compilar. O botao Atualizar baixa so essas versoes testadas e confere o SHA-256 do pacote antes de instalar. Se o pacote nao bater, nada e instalado.
+
+NOVIDADES DA 1.9.3
+- Teste de FPS (opcional) na aba Meu ganho: mede FPS medio e 1% low do jogo por 30 a 180 s, antes e depois de otimizar, usando o PresentMon (ferramenta gratuita da Intel, baixada so se voce clicar em medir). Ele so le os quadros pelo Windows, nao injeta nada no jogo. O resultado entra no relatorio. Nunca roda sozinho.

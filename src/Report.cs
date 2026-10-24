@@ -245,6 +245,54 @@ namespace PCTurbo
             }
         }
 
+        // Medicoes de FPS (which = "antes" ou "depois")
+        public static void SaveFps(string which, FpsResult r)
+        {
+            try
+            {
+                lock (fileLock)
+                {
+                    Dictionary<string, string> d = Load();
+                    string p = "fps_" + which + "_";
+                    d[p + "proc"] = r.Proc;
+                    d[p + "when"] = r.When;
+                    d[p + "avg"] = N(r.Avg);
+                    d[p + "low1"] = N(r.Low1);
+                    d[p + "low01"] = N(r.Low01);
+                    d[p + "frames"] = r.Frames.ToString(CultureInfo.InvariantCulture);
+                    d[p + "secs"] = r.Secs.ToString(CultureInfo.InvariantCulture);
+                    Save(d);
+                }
+            }
+            catch { }
+        }
+
+        public static FpsResult LoadFps(string which)
+        {
+            lock (fileLock)
+            {
+                Dictionary<string, string> d = Load();
+                string p = "fps_" + which + "_";
+                if (!d.ContainsKey(p + "avg")) return null;
+                FpsResult r = new FpsResult();
+                string v;
+                if (d.TryGetValue(p + "proc", out v)) r.Proc = v;
+                if (d.TryGetValue(p + "when", out v)) r.When = v;
+                r.Avg = ReadNum(d, p + "avg", 0);
+                r.Low1 = ReadNum(d, p + "low1", 0);
+                r.Low01 = ReadNum(d, p + "low01", 0);
+                r.Frames = (int)ReadNum(d, p + "frames", 0);
+                r.Secs = (int)ReadNum(d, p + "secs", 0);
+                return r;
+            }
+        }
+
+        public static string FpsLine(FpsResult r)
+        {
+            return N(Math.Round(r.Avg, 1)) + " FPS médio   |   1% low: " + N(Math.Round(r.Low1, 1)) + "   |   0,1% low: " + N(Math.Round(r.Low01, 1)) +
+                "   (" + r.Proc + ", " + r.Secs + " s, " + r.Frames + " quadros, " + r.When + ")";
+        }
+
         // Para a aba "Meu ganho": o "antes" guardado (ou null) e os totais
         public static Snap LoadBefore()
         {
@@ -427,16 +475,36 @@ namespace PCTurbo
                 sb.AppendLine("Última otimização: " + last + " (" + (int)ReadNum(d, "ajustes_ultima", 0) + " ajustes aplicados)");
 
             sb.AppendLine();
-            sb.AppendLine("FPS (preencher à mão, o app não mede FPS)");
+            sb.AppendLine("FPS (teste opcional com o PresentMon)");
             sb.AppendLine(line);
-            sb.AppendLine("Jogo: ______________   FPS antes: ______   FPS depois: ______");
+            FpsResult fa = LoadFps("antes");
+            FpsResult fd = LoadFps("depois");
+            if (fa == null && fd == null)
+            {
+                sb.AppendLine("Não medido. Para provar o ganho no jogo: aba Meu ganho > Teste de FPS (meça antes e depois).");
+                sb.AppendLine("Ou anote à mão -> Jogo: ______________   FPS antes: ______   FPS depois: ______");
+            }
+            else
+            {
+                if (fa != null) sb.AppendLine("ANTES : " + FpsLine(fa));
+                if (fd != null) sb.AppendLine("DEPOIS: " + FpsLine(fd));
+                if (fa != null && fd != null)
+                {
+                    sb.AppendLine("FPS médio : " + Change(fa.Avg, fd.Avg, " FPS", false));
+                    sb.AppendLine("1% low    : " + Change(fa.Low1, fd.Low1, " FPS", false));
+                    sb.AppendLine("0,1% low  : " + Change(fa.Low01, fd.Low01, " FPS", false));
+                    if (!string.Equals(fa.Proc, fd.Proc, StringComparison.OrdinalIgnoreCase))
+                        sb.AppendLine("ATENÇÃO: as duas medições foram em programas diferentes, então não dá para comparar.");
+                }
+            }
             sb.AppendLine();
             sb.AppendLine("COMO LER ESTES NÚMEROS");
             sb.AppendLine("- Os números variam conforme o que estava aberto na hora. Para comparar de");
             sb.AppendLine("  verdade, gere o relatório logo depois de reiniciar o PC, sem abrir nada.");
             sb.AppendLine("- Menos programas, menos RAM e menos CPU parada = PC mais leve em segundo plano.");
-            sb.AppendLine("- Isso não é FPS. O ganho em jogo depende do PC, e o jeito certo de provar é");
-            sb.AppendLine("  anotar o FPS do mesmo jogo, no mesmo lugar, antes e depois.");
+            sb.AppendLine("- Isso não é FPS. O ganho em jogo depende do PC. O jeito certo de provar é medir o");
+            sb.AppendLine("  FPS do mesmo jogo, no mesmo lugar e do mesmo jeito, antes e depois. Uma partida");
+            sb.AppendLine("  nunca é igual a outra, então diferenças pequenas (1 ou 2%) são ruído.");
             sb.AppendLine("- Este arquivo não tem nome de usuário nem arquivos pessoais.");
             return sb.ToString();
         }

@@ -23,6 +23,13 @@ namespace PCTurbo
         private TextBox txtWarns;
         private Button btnRefresh;
         private bool loadedOnce;
+        private ComboBox cmbProc;
+        private NumericUpDown nudSecs;
+        private Button btnFpsA;
+        private Button btnFpsD;
+        private Label lblFps;
+        private bool fpsBusy;
+        private bool fpsAsked;
         private bool busy;
 
         public GainTab()
@@ -113,6 +120,60 @@ namespace PCTurbo
                 "Menos programas, menos RAM e menos CPU parada significam um PC mais leve em segundo plano. Isso não é FPS: para provar o ganho em jogo, " +
                 "anote o FPS do mesmo jogo, no mesmo lugar, antes e depois.";
             flow.Controls.Add(note);
+
+            flow.Controls.Add(Section("Teste de FPS (opcional, para provar o ganho no jogo)"));
+            Label how = new Label();
+            how.Width = 900;
+            how.Height = 70;
+            how.ForeColor = Theme.Muted;
+            how.Text = "1) ANTES de otimizar: abra o jogo, vá para um lugar sempre igual (por exemplo, o campo de treino), clique em \"Medir ANTES\" e volte para o jogo. " +
+                "2) Otimize e reinicie o PC. 3) Repita no mesmo lugar e clique em \"Medir DEPOIS\". O resultado entra no relatório.";
+            flow.Controls.Add(how);
+
+            FlowLayoutPanel fpsRow = new FlowLayoutPanel();
+            fpsRow.FlowDirection = FlowDirection.LeftToRight;
+            fpsRow.WrapContents = false;
+            fpsRow.Width = 900;
+            fpsRow.Height = 40;
+            fpsRow.Margin = new Padding(0);
+            Label lp = new Label();
+            lp.Text = "Programa do jogo:";
+            lp.Width = 120;
+            lp.Height = 28;
+            lp.TextAlign = ContentAlignment.MiddleLeft;
+            cmbProc = new ComboBox();
+            cmbProc.Width = 290;
+            cmbProc.Text = "VALORANT-Win64-Shipping.exe";
+            cmbProc.DropDown += delegate { FillProcs(); };
+            Label ls = new Label();
+            ls.Text = "Duração (s):";
+            ls.Width = 90;
+            ls.Height = 28;
+            ls.Margin = new Padding(16, 3, 0, 0);
+            ls.TextAlign = ContentAlignment.MiddleLeft;
+            nudSecs = new NumericUpDown();
+            nudSecs.Minimum = 30;
+            nudSecs.Maximum = 180;
+            nudSecs.Value = 60;
+            nudSecs.Width = 60;
+            fpsRow.Controls.Add(lp);
+            fpsRow.Controls.Add(cmbProc);
+            fpsRow.Controls.Add(ls);
+            fpsRow.Controls.Add(nudSecs);
+            flow.Controls.Add(fpsRow);
+
+            btnFpsA = Ui.Btn("Medir FPS: ANTES", 190, delegate { StartFps("antes"); });
+            btnFpsD = Ui.Btn("Medir FPS: DEPOIS", 190, delegate { StartFps("depois"); });
+            FlowLayoutPanel fpsButtons = Ui.Buttons(btnFpsA, btnFpsD);
+            fpsButtons.WrapContents = false;
+            fpsButtons.AutoSize = true;
+            flow.Controls.Add(fpsButtons);
+
+            lblFps = new Label();
+            lblFps.Width = 900;
+            lblFps.Height = 96;
+            lblFps.Text = "...";
+            flow.Controls.Add(lblFps);
 
             btnRefresh = Ui.Btn("Atualizar agora", 170, delegate { Refresh2(); });
             Button btnFile = Ui.Btn("Salvar relatório em arquivo", 230, delegate
@@ -212,6 +273,136 @@ namespace PCTurbo
             return l;
         }
 
+        private void FillProcs()
+        {
+            try
+            {
+                string cur = cmbProc.Text;
+                cmbProc.Items.Clear();
+                System.Collections.Generic.List<string> names = new System.Collections.Generic.List<string>();
+                foreach (System.Diagnostics.Process p in System.Diagnostics.Process.GetProcesses())
+                {
+                    try
+                    {
+                        if (p.MainWindowHandle != IntPtr.Zero && p.ProcessName.Length > 0)
+                        {
+                            string n = p.ProcessName + ".exe";
+                            if (!names.Contains(n)) names.Add(n);
+                        }
+                    }
+                    catch { }
+                    try { p.Dispose(); }
+                    catch { }
+                }
+                names.Sort();
+                foreach (string n in names) cmbProc.Items.Add(n);
+                cmbProc.Text = cur;
+            }
+            catch { }
+        }
+
+        private void PostFps(string text)
+        {
+            try { BeginInvoke(new Action(delegate { lblFps.Text = text; })); }
+            catch { }
+        }
+
+        private void FinishFps(string text)
+        {
+            fpsBusy = false;
+            try
+            {
+                BeginInvoke(new Action(delegate
+                {
+                    btnFpsA.Enabled = true;
+                    btnFpsD.Enabled = true;
+                    lblFps.Text = text;
+                    try { System.Media.SystemSounds.Asterisk.Play(); }
+                    catch { }
+                }));
+            }
+            catch { }
+        }
+
+        private string StoredFpsText()
+        {
+            FpsResult a = Report.LoadFps("antes");
+            FpsResult d = Report.LoadFps("depois");
+            if (a == null && d == null) return "Ainda não há medição de FPS.";
+            string t = "";
+            if (a != null) t += "ANTES : " + Report.FpsLine(a) + "\r\n";
+            if (d != null) t += "DEPOIS: " + Report.FpsLine(d) + "\r\n";
+            if (a != null && d != null && string.Equals(a.Proc, d.Proc, StringComparison.OrdinalIgnoreCase) && a.Avg > 0)
+            {
+                int bt;
+                t += "Diferença no FPS médio: " + Report.Diff(a.Avg, d.Avg, " FPS", false, out bt) + "   |   no 1% low: " + Report.Diff(a.Low1, d.Low1, " FPS", false, out bt);
+            }
+            return t;
+        }
+
+        private void StartFps(string which)
+        {
+            if (fpsBusy || Ui.Busy)
+            {
+                MessageBox.Show("Já tem uma tarefa rodando. Espere terminar.", "PC Turbo");
+                return;
+            }
+            string proc = cmbProc.Text.Trim();
+            if (proc.Length == 0)
+            {
+                MessageBox.Show("Digite o nome do programa do jogo (exemplo: VALORANT-Win64-Shipping.exe) ou escolha na lista com o jogo aberto.", "PC Turbo");
+                return;
+            }
+            if (!proc.ToLowerInvariant().EndsWith(".exe")) proc += ".exe";
+            int secs = (int)nudSecs.Value;
+
+            if (!fpsAsked)
+            {
+                DialogResult r = MessageBox.Show(
+                    "O teste usa o PresentMon, uma ferramenta gratuita e de código aberto da Intel. Ele só lê, pelo próprio Windows, quando cada quadro aparece na tela. " +
+                    "Não injeta nada no jogo e não altera arquivos dele.\n\n" +
+                    "A Riot não publica uma lista oficial de programas aceitos pelo Vanguard. Esse tipo de ferramenta é muito usado em Valorant, mas a decisão é sua. " +
+                    "Se preferir, meça em um jogo sem anti-cheat.\n\n" +
+                    "Na primeira vez o app baixa o PresentMon do GitHub oficial (GameTechDev/PresentMon).\n\nContinuar?",
+                    "PC Turbo - teste de FPS", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                if (r != DialogResult.Yes) return;
+                fpsAsked = true;
+            }
+
+            fpsBusy = true;
+            btnFpsA.Enabled = false;
+            btnFpsD.Enabled = false;
+            string label = which == "antes" ? "ANTES" : "DEPOIS";
+            lblFps.Text = "Preparando...";
+            ThreadPool.QueueUserWorkItem(delegate(object state)
+            {
+                try
+                {
+                    PostFps("Preparando o PresentMon...");
+                    string e1 = FpsTest.EnsureTool();
+                    if (e1 != null) { FinishFps(e1); return; }
+
+                    for (int i = 15; i > 0; i--)
+                    {
+                        PostFps("Medição " + label + ": volte para o jogo, vá para o lugar do teste e jogue normalmente. Começa em " + i + " s (dura " + secs + " s).");
+                        Thread.Sleep(1000);
+                    }
+                    PostFps("Medindo " + proc + " por " + secs + " s. Continue jogando...");
+                    FpsResult res;
+                    string err = FpsTest.Measure(proc, secs, out res);
+                    if (err != null) { FinishFps("Não deu certo: " + err); return; }
+
+                    Report.SaveFps(which, res);
+                    Log.Write("Teste de FPS (" + which + "): " + Report.FpsLine(res));
+                    FinishFps("Pronto! Medição " + label + " guardada.\r\n" + StoredFpsText());
+                }
+                catch (Exception ex)
+                {
+                    FinishFps("Erro no teste de FPS: " + ex.Message);
+                }
+            });
+        }
+
         private void Refresh2()
         {
             if (busy) return;
@@ -265,6 +456,7 @@ namespace PCTurbo
             bool hasRun, long found, string when, System.Collections.Generic.List<string> lc, System.Collections.Generic.List<string> lf, System.Collections.Generic.List<string> lw)
         {
             btnRefresh.Enabled = true;
+            if (!fpsBusy) lblFps.Text = StoredFpsText();
             if (hasRun)
             {
                 lblWhen.Text = "Feita em " + when;
