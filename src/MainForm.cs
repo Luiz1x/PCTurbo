@@ -320,7 +320,7 @@ namespace PCTurbo
                 return;
             }
             DialogResult r = MessageBox.Show(
-                "Isso desfaz os ajustes de Windows que o OTIMIZAR TUDO aplica (plano de energia, Game Bar, timer, serviços e os outros que vêm marcados na aba Otimização). Arquivos já limpos não voltam.\n\nDesfazer agora?",
+                "Isso desfaz os ajustes de Windows que o OTIMIZAR TUDO aplica (plano de energia, Game Bar, timer, serviços, efeitos visuais e todos os outros da aba Otimização que podem ser desfeitos). Arquivos já limpos não voltam.\n\nDesfazer agora?",
                 "Desfazer ajustes", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
             if (r != DialogResult.Yes) return;
 
@@ -329,7 +329,7 @@ namespace PCTurbo
                 int ok = 0, fail = 0;
                 foreach (Tweak tw in Tweaks.All())
                 {
-                    if (!tw.Default || tw.Revert == null) continue;
+                    if (tw.Revert == null) continue;
                     try
                     {
                         tw.Revert();

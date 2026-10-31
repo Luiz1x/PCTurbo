@@ -159,6 +159,9 @@ NOVIDADES DA 2.1.0
 - Nova aba Jogos. Modo Jogo automatico: quando um jogo da lista abre (Valorant, League of Legends, Rocket League, GTA V, Fortnite, CS2, Roblox), o icone da bandeja deixa o equilibrio de CPU mais atento (programas em segundo plano acima de 5% do processador passam para prioridade baixa) e a limpeza automatica espera. Quando o jogo fecha, tudo volta ao normal. Voce edita a lista de jogos.
 - Sua lista de programas protegidos: o que voce colocar la nunca tem a prioridade mexida e nao entra em regras da aba Prioridades.
 
+NOVIDADES DA 2.2.1
+- Corrigido: "Desfazer ajustes" agora desfaz TODOS os ajustes que podem ser desfeitos, inclusive "Menos animacoes e sem transparencia" e os que voce marcou na mao. Antes pulava os que nao vinham marcados de fabrica.
+
 NOVIDADES DA 2.2.0
 - Cartao de resultado: na aba Meu ganho, o botao "Gerar cartao de resultado (imagem)" salva PCTurbo_resultado.png na Area de Trabalho, com lixo removido, programas, RAM, CPU parada, espaco livre e FPS (se medido). O que melhorou aparece em verde e o que piorou em laranja.
 - O historico das otimizacoes agora mostra uma barra do tamanho da limpeza de cada vez.
